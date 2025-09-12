@@ -12,7 +12,7 @@ Each day, I’ll log my progress in the [`logs/`](./logs) folder and update this
 | Day | Date       | Progress Summary                                          |
 | --- | ---------- | --------------------------------------------------------- |
 | 1   | 2025-09-11 | Initialized repo, structured folders, and wrote first log |
-| 2   |            |                                                           |
+| 2   | 2025-10-12 | Started first laravel project (task ,manager)             |
 | 3   |            |                                                           |
 | …   | …          | …                                                         |
 | 100 |            |                                                           |
