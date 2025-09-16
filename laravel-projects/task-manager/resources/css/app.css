@@ -72,17 +72,6 @@
   --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
       'Segoe UI Symbol', 'Noto Color Emoji';
   --font-cursive: var(--font-cursive);
-  --font-display: var(--font-euclid-flex);
-  --font-mono: var(--font-mono), var(--font-code);
-
-  --color-surface: var(--surface);
-  --color-surface-foreground: var(--surface-foreground);
-  --color-code: var(--code);
-  --color-code-foreground: var(--code-foreground);
-  --color-code-highlight: var(--code-highlight);
-  --color-code-number: var(--code-number);
-  --color-selection: var(--selection);
-  --color-selection-foreground: var(--selection-foreground);
 }
 
 :root {

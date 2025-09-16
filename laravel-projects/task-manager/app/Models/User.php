@@ -45,4 +45,16 @@ class User extends Authenticatable
     {
         return $this->hasMany(Task::class);
     }
+
+    // Projets créés par l'utilisateur
+    public function projects()
+    {
+        return $this->hasMany(Project::class);
+    }
+
+    // Projets où l'utilisateur est membre
+    public function memberProjects()
+    {
+        return $this->belongsToMany(Project::class, 'project_user')->withTimestamps();
+    }
 }

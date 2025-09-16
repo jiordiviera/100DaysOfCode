@@ -14,10 +14,10 @@
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
 
         <!-- Styles / Scripts -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @vite(['resources/css/app.css'])
         @livewireStyles
     </head>
-    <body class="font-sans antialiased min-h-screen flex flex-col !overflow-x-hidden">
+    <body class="font-sans antialiased min-h-screen !overflow-x-hidden">
         <livewire:partials.header />
         <main class="flex-1">
         {{ $slot }}
