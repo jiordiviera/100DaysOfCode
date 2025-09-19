@@ -1,4 +1,3 @@
-100DaysOfCode/logs/day05.md
 # Day 5/100
 
 ✅ Continued work on main project feature  

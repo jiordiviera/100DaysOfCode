@@ -1,4 +1,3 @@
-100DaysOfCode/logs/day06.md
 # Day 6/100
 
 ✅ Continued work on the main project  

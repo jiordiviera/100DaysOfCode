@@ -11,6 +11,10 @@ class ProjectManager extends Component
     public $projectName = '';
     public $taskName = '';
     public $taskProjectId = '';
+    public $editProjectId = null;
+    public $editProjectName = '';
+    public $editTaskId = null;
+    public $editTaskName = '';
 
     public function createProject(): void
     {
@@ -37,6 +41,54 @@ class ProjectManager extends Component
         ]);
         $this->taskName = '';
         $this->taskProjectId = '';
+    }
+
+    public function editProject($id)
+    {
+        $project = Project::findOrFail($id);
+        $this->editProjectId = $project->id;
+        $this->editProjectName = $project->name;
+    }
+
+    public function updateProject()
+    {
+        $this->validate([
+            'editProjectName' => 'required|string|max:255',
+        ]);
+        $project = Project::findOrFail($this->editProjectId);
+        $project->update(['name' => $this->editProjectName]);
+        $this->editProjectId = null;
+        $this->editProjectName = '';
+    }
+
+    public function deleteProject($id)
+    {
+        Project::findOrFail($id)->delete();
+    }
+
+    public function editTask($id)
+    {
+        $task = Task::findOrFail($id);
+        $this->editTaskId = $task->id;
+        $this->editTaskName = $task->title;
+        $this->taskProjectId = $task->project_id;
+    }
+
+    public function updateTask()
+    {
+        $this->validate([
+            'editTaskName' => 'required|string|max:255',
+        ]);
+        $task = Task::findOrFail($this->editTaskId);
+        $task->update(['title' => $this->editTaskName]);
+        $this->editTaskId = null;
+        $this->editTaskName = '';
+        $this->taskProjectId = '';
+    }
+
+    public function deleteTask($id)
+    {
+        Task::findOrFail($id)->delete();
     }
 
     public function render()
