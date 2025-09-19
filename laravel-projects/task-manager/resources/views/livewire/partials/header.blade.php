@@ -5,23 +5,24 @@
         <div class="flex items-center justify-between h-16">
             <!-- Logo ou titre -->
             <div class="flex items-center gap-2">
-                <a href="{{ route('home') }}" wire:navigate class="text-xl font-bold text-primary hover:text-primary-700 transition-colors">{{config('app.name')}}</a>
+                <a href="{{ route('home') }}" wire:navigate class="text-xl font-bold text-foreground hover:text-primary-700 transition-colors">{{config('app.name')}}</a>
             </div>
             @if (Route::has('login'))
                 <nav class="hidden md:flex items-center gap-8 text-sm font-medium">
                     <a wire:navigate href="{{ route('home') }}" wire:navigate>Accueil</a>
                     @auth
                         <a href="{{ url('/dashboard') }}" wire:navigate>Tableau de bord</a>
+                        <a href="{{ route('challenges.index') }}" wire:navigate>Challenges</a>
                     @else
-                        <a href="{{ route('login') }}" >Connexion</a>
+                        <a href="{{ route('login') }}" wire:navigate >Connexion</a>
                         @if (Route::has('register'))
-                            <a href="{{ route('register') }}" >Inscription</a>
+                            <a href="{{ route('register') }}" wire:navigate >Inscription</a>
                         @endif
                     @endauth
                 </nav>
                 <!-- Bouton logout visible seulement si authentifié -->
                 @auth
-                    <a href="{{ route('logout') }}" class="py-2 px-4 rounded bg-destructive text-white hover:bg-destructive hidden md:flex" >Déconnexion</a>
+                    <a href="{{ route('logout') }}" wire:navigate class="py-2 px-4 rounded bg-destructive text-white hover:bg-destructive hidden md:flex" >Déconnexion</a>
                 @endauth
             @endif
             <!-- Menu mobile -->
@@ -40,12 +41,13 @@
             <nav class="flex flex-col gap-2 p-4 text-sm font-medium">
                 <a wire:navigate href="{{ route('home') }}" class="py-2 px-4 rounded hover:bg-background/80">Accueil</a>
                 @auth
-                    <a href="{{ url('/dashboard') }}" class="py-2 px-4 rounded">Tableau de bord</a>
-                    <a href="{{ route('logout') }}" class="py-2 px-4 rounded bg-destructive text-white hover:bg-destructive">Déconnexion</a>
+                    <a href="{{ url('/dashboard') }}" wire:navigate class="py-2 px-4 rounded">Tableau de bord</a>
+                    <a href="{{ route('challenges.index') }}" wire:navigate class="py-2 px-4 rounded">Challenges</a>
+                    <a href="{{ route('logout') }}" wire:navigate class="py-2 px-4 rounded bg-destructive text-white hover:bg-destructive">Déconnexion</a>
                 @else
-                    <a href="{{ route('login') }}" class="py-2 px-4 rounded ">Connexion</a>
+                    <a href="{{ route('login') }}" wire:navigate class="py-2 px-4 rounded ">Connexion</a>
                     @if (Route::has('register'))
-                        <a href="{{ route('register') }}" class="py-2 px-4 rounded">Inscription</a>
+                        <a href="{{ route('register') }}" wire:navigate class="py-2 px-4 rounded">Inscription</a>
                     @endif
                 @endauth
             </nav>

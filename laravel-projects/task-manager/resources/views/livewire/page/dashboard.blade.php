@@ -94,7 +94,7 @@
                     </div>
                 </div>
 
-                <!-- Statistique 4: Jours depuis le début -->
+                <!-- Statistique 4: Jours du challenge actif -->
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
                     <div class="p-5">
                         <div class="flex items-center">
@@ -108,10 +108,15 @@
                                     <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Jours du défi</dt>
                                     <dd>
                                         @php
-                                            $daysSinceStart = $stats['daysSinceStart'];
-                                            $daysLeft = max(0, 100 - $daysSinceStart);
+                                            $active = $stats['active'] ?? null;
+                                            $dayNumber = $active['dayNumber'] ?? null;
+                                            $targetDays = $active['targetDays'] ?? 100;
                                         @endphp
-                                        <div class="text-lg font-medium text-gray-900 dark:text-white">Jour {{ min(100, $daysSinceStart + 1) }}/100</div>
+                                        @if($dayNumber)
+                                            <div class="text-lg font-medium text-gray-900 dark:text-white">Jour {{ min($targetDays, $dayNumber) }}/{{ $targetDays }}</div>
+                                        @else
+                                            <div class="text-sm text-gray-600 dark:text-gray-300">Aucun challenge actif</div>
+                                        @endif
                                     </dd>
                                 </dl>
                             </div>
@@ -119,7 +124,12 @@
                     </div>
                     <div class="bg-gray-50 dark:bg-gray-700 px-5 py-3">
                         <div class="text-sm">
-                            <span class="font-medium text-purple-600 dark:text-purple-400">{{ $daysLeft }} jours restants</span>
+                            @if(!empty($dayNumber))
+                                @php $daysLeft = max(0, $targetDays - $dayNumber); @endphp
+                                <span class="font-medium text-purple-600 dark:text-purple-400">{{ $daysLeft }} jours restants</span>
+                            @else
+                                <a href="{{ route('challenges.index') }}" class="font-medium text-purple-600 dark:text-purple-400 hover:underline">Créer ou rejoindre un challenge</a>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -132,23 +142,29 @@
                 <div class="p-5">
                     <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Progression du défi</h3>
                     <div class="mt-3">
-                        <div class="relative pt-1">
-                            <div class="flex mb-2 items-center justify-between">
-                                <div>
-                                    <span class="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-indigo-600 bg-indigo-200 dark:text-indigo-200 dark:bg-indigo-800">
-                                        Progression
-                                    </span>
+                        @php $active = $stats['active'] ?? null; @endphp
+                        @if($active)
+                            <div class="relative pt-1">
+                                <div class="flex mb-2 items-center justify-between">
+                                    <div>
+                                        <span class="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-indigo-600 bg-indigo-200 dark:text-indigo-200 dark:bg-indigo-800">
+                                            {{ $active['run']->title ?? 'Challenge actif' }}
+                                        </span>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-xs font-semibold inline-block text-indigo-600 dark:text-indigo-300">
+                                            {{ $active['myPercent'] }}%
+                                        </span>
+                                    </div>
                                 </div>
-                                <div class="text-right">
-                                    <span class="text-xs font-semibold inline-block text-indigo-600 dark:text-indigo-300">
-                                        {{ min(100, $daysSinceStart + 1) }}%
-                                    </span>
+                                <div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-indigo-200 dark:bg-gray-700">
+                                    <div style="width:{{ $active['myPercent'] }}%" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-indigo-500"></div>
                                 </div>
+                                <a class="text-sm text-primary underline" href="{{ route('challenges.show', $active['run']->id) }}">Voir le challenge</a>
                             </div>
-                            <div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-indigo-200 dark:bg-gray-700">
-                                <div style="width:{{ min(100, $daysSinceStart + 1) }}%" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-indigo-500"></div>
-                            </div>
-                        </div>
+                        @else
+                            <div class="text-sm text-gray-600 dark:text-gray-300">Aucun challenge actif. <a class="text-primary underline" href="{{ route('challenges.index') }}">Créer ou rejoindre</a></div>
+                        @endif
                     </div>
                 </div>
             </div>

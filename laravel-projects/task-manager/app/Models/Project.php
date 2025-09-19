@@ -2,15 +2,17 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 
 class Project extends Model
 {
-    
+    use HasUlids;
     protected $fillable = [
         "name",
         "description",
         "user_id",
+        "challenge_run_id",
     ];
     public function tasks()
     {
@@ -26,5 +28,10 @@ class Project extends Model
             User::class,
             "project_user",
         )->withTimestamps();
+    }
+
+    public function challengeRun()
+    {
+        return $this->belongsTo(ChallengeRun::class);
     }
 }

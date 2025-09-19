@@ -1,6 +1,6 @@
 <div>
     <!-- Hero Section -->
-    <section class="relative bg-white dark:bg-gray-900 overflow-hidden">
+    <section class="relative bg-background overflow-hidden">
         <!-- Hero Background Pattern -->
         <div
             class="absolute inset-0 bg-grid-slate-100 dark:bg-grid-slate-900 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] dark:[mask-image:linear-gradient(0deg,black,rgba(0,0,0,0.6))]"></div>
@@ -10,27 +10,27 @@
                 <div class="sm:text-center md:max-w-2xl md:mx-auto lg:col-span-6 lg:text-left">
                     <h1>
                         <span
-                            class="block text-base font-semibold text-blue-600 dark:text-blue-500 tracking-wide uppercase">Défi de codage</span>
+                            class="block text-base font-semibold text-primary tracking-wide uppercase">Défi de codage</span>
                         <span class="mt-1 block text-4xl tracking-tight font-extrabold sm:text-5xl xl:text-6xl">
-                            <span class="block text-gray-900 dark:text-white">Relevez le défi des</span>
+                            <span class="block text-foreground">Relevez le défi des</span>
                             <span
-                                class="block bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-500 pb-1">100 Days of Code</span>
+                                class="block bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/80 pb-1">100 Days of Code</span>
                         </span>
                     </h1>
-                    <p class="mt-3 text-base text-gray-600 dark:text-gray-300 sm:mt-5 sm:text-xl lg:text-lg xl:text-xl">
+                    <p class="mt-3 text-base text-foreground/80 sm:mt-5 sm:text-xl lg:text-lg xl:text-xl">
                         Transformez votre apprentissage en vous engageant à coder au moins une heure par jour pendant
                         100 jours consécutifs. Suivez votre progression, gérez vos projets et atteignez vos objectifs!
                     </p>
                     <div class="mt-8 sm:flex sm:justify-center lg:justify-start">
                         <div class="rounded-md shadow">
                             <a href="{{ route('register') }}"
-                               class="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 md:py-4 md:text-lg md:px-10">
+                               class="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-foreground bg-primary md:py-4 md:text-lg md:px-10">
                                 Commencer le défi
                             </a>
                         </div>
                         <div class="mt-3 sm:mt-0 sm:ml-3">
                             <a href="#about"
-                               class="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 dark:text-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 md:py-4 md:text-lg md:px-10">
+                               class="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-primary bg-secondary/30 md:py-4 md:text-lg md:px-10">
                                 En savoir plus
                             </a>
                         </div>
@@ -44,7 +44,7 @@
                                  src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80"
                                  alt="Coding">
                             <div class="absolute inset-0 flex items-center justify-center">
-                                <svg class="h-20 w-20 text-blue-500" fill="currentColor" viewBox="0 0 84 84">
+                                <svg class="h-20 w-20 text-primary/90" fill="currentColor" viewBox="0 0 84 84">
                                     <circle opacity="0.9" cx="42" cy="42" r="42" fill="white"></circle>
                                     <path d="M55 42L36 55.5V28.5L55 42Z" fill="currentColor"></path>
                                 </svg>
@@ -60,12 +60,12 @@
     <section id="about" class="py-16 bg-gray-50 dark:bg-gray-800 overflow-hidden">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="lg:text-center">
-                <h2 class="text-base text-blue-600 dark:text-blue-500 font-semibold tracking-wide uppercase">
+                <h2 class="text-base text-primary font-semibold tracking-wide uppercase">
                     Fonctionnalités</h2>
-                <p class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
+                <p class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-foreground sm:text-4xl">
                     Une meilleure façon de suivre votre défi
                 </p>
-                <p class="mt-4 max-w-2xl text-xl text-gray-600 dark:text-gray-300 lg:mx-auto">
+                <p class="mt-4 max-w-2xl text-xl text-foreground/80 lg:mx-auto">
                     Notre plateforme vous aide à rester motivé et organisé tout au long de votre parcours de 100 jours.
                 </p>
             </div>
@@ -75,17 +75,17 @@
                     <div class="relative">
                         <dt>
                             <div
-                                class="absolute flex items-center justify-center h-12 w-12 rounded-md bg-blue-600 text-white">
+                                class="absolute flex items-center justify-center h-12 w-12 rounded-md bg-primary text-foreground">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
                                      stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                           d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
                                 </svg>
                             </div>
-                            <p class="ml-16 text-lg leading-6 font-medium text-gray-900 dark:text-white">Suivi de
+                            <p class="ml-16 text-lg leading-6 font-medium text-foreground">Suivi de
                                 projets</p>
                         </dt>
-                        <dd class="mt-2 ml-16 text-base text-gray-600 dark:text-gray-300">
+                        <dd class="mt-2 ml-16 text-base text-foreground/80">
                             Créez et organisez vos projets de code. Définissez des objectifs clairs pour chaque projet
                             et suivez votre progression.
                         </dd>
@@ -94,17 +94,17 @@
                     <div class="relative">
                         <dt>
                             <div
-                                class="absolute flex items-center justify-center h-12 w-12 rounded-md bg-blue-600 text-white">
+                                class="absolute flex items-center justify-center h-12 w-12 rounded-md bg-primary text-foreground">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
                                      stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                           d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
                             </div>
-                            <p class="ml-16 text-lg leading-6 font-medium text-gray-900 dark:text-white">Gestion de
+                            <p class="ml-16 text-lg leading-6 font-medium text-foreground">Gestion de
                                 tâches</p>
                         </dt>
-                        <dd class="mt-2 ml-16 text-base text-gray-600 dark:text-gray-300">
+                        <dd class="mt-2 ml-16 text-base text-foreground/80">
                             Décomposez vos projets en tâches gérables. Planifiez votre travail quotidien et restez
                             concentré sur vos objectifs.
                         </dd>
@@ -113,17 +113,17 @@
                     <div class="relative">
                         <dt>
                             <div
-                                class="absolute flex items-center justify-center h-12 w-12 rounded-md bg-blue-600 text-white">
+                                class="absolute flex items-center justify-center h-12 w-12 rounded-md bg-primary text-foreground">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
                                      stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                           d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
                                 </svg>
                             </div>
-                            <p class="ml-16 text-lg leading-6 font-medium text-gray-900 dark:text-white">
+                            <p class="ml-16 text-lg leading-6 font-medium text-foreground">
                                 Collaboration</p>
                         </dt>
-                        <dd class="mt-2 ml-16 text-base text-gray-600 dark:text-gray-300">
+                        <dd class="mt-2 ml-16 text-base text-foreground/80">
                             Invitez des amis ou des collègues à rejoindre vos projets. Collaborez efficacement et
                             apprenez ensemble.
                         </dd>
@@ -132,17 +132,17 @@
                     <div class="relative">
                         <dt>
                             <div
-                                class="absolute flex items-center justify-center h-12 w-12 rounded-md bg-blue-600 text-white">
+                                class="absolute flex items-center justify-center h-12 w-12 rounded-md bg-primary text-foreground">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
                                      stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                           d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                                 </svg>
                             </div>
-                            <p class="ml-16 text-lg leading-6 font-medium text-gray-900 dark:text-white">Suivi de
+                            <p class="ml-16 text-lg leading-6 font-medium text-foreground">Suivi de
                                 progression</p>
                         </dt>
-                        <dd class="mt-2 ml-16 text-base text-gray-600 dark:text-gray-300">
+                        <dd class="mt-2 ml-16 text-base text-foreground/80">
                             Visualisez votre progression au fil des jours. Célébrez vos réussites et restez motivé
                             jusqu'à la fin du défi.
                         </dd>
@@ -153,8 +153,8 @@
     </section>
 
     <!-- CTA Section -->
-    <section class="relative py-16 bg-blue-700">
-        <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-700 opacity-90"></div>
+    <section class="relative py-16 bg-primary">
+        <div class="absolute inset-0 bg-gradient-to-r from-primary/90 to-primary opacity-90"></div>
         <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center">
             <h2 class="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
                 <span class="block">Prêt à relever le défi?</span>

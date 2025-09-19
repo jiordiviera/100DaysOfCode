@@ -6,26 +6,22 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::create('projects', function (Blueprint $table) {
+        Schema::create('challenge_participants', function (Blueprint $table) {
             $table->ulid('id')->primary();
-            $table->string('name');
-            $table->text('description')->nullable();
+            $table->foreignUlid('challenge_run_id')->constrained()->onDelete('cascade');
+            // users table uses integer IDs today; keep FK as integer
             $table->foreignUlid('user_id')->constrained()->onDelete('cascade');
-            $table->foreignUlid('challenge_run_id')->nullable();
+            $table->timestamp('joined_at')->nullable();
             $table->timestamps();
+
+            $table->unique(['challenge_run_id', 'user_id']);
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('projects');
+        Schema::dropIfExists('challenge_participants');
     }
 };

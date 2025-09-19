@@ -1,44 +1,60 @@
-<div class="mt-7 border-border rounded-xl shadow-2xs">
-  <div class="p-4 sm:p-7">
-    <div class="text-center">
-      <h1 class="block text-2xl font-bold">Sign in</h1>
-      <p class="mt-2 text-sm text-muted-foreground">
-        Don't have an account yet?
-        <a href={{route('register')}}>
-          Sign up here
-        </a>
-      </p>
-    </div>
+  <div class="w-full max-w-md border border-border rounded-xl shadow-2xs bg-background">
+    <div class="p-6 sm:p-8">
+      <div class="text-center">
+        <h1 class="block text-2xl font-bold">Connexion</h1>
+        <p class="mt-2 text-sm text-muted-foreground">
+          Pas encore de compte ?
+          <x-ui.button :link="true" variant="link" size="sm" href="{{ route('register') }}" wire:navigate title="Créer un compte" />
+        </p>
+      </div>
 
-    <div class="mt-5 mx-auto max-w-sm">
+      <div class="mt-6">
+        <x-ui.button class="w-full justify-center" variant="outline" disabled>
+          @include('components.ui.icons.github')
+          <span>Continuer avec GitHub (bientôt)</span>
+        </x-ui.button>
+      </div>
 
-      <!-- Form -->
-      <form wire:submit.prevent="submit">
-        <div class="grid gap-y-4">
-          <!-- Form Group -->
-            <x-ui.input label="Email Address" type="email" id="email" wire:model="email" required placeholder="example@mail.com" />
-          <!-- End Form Group -->
+      <div class="my-6 grid grid-cols-[1fr_auto_1fr] items-center gap-3 text-xs text-muted-foreground">
+        <span class="h-px bg-border"></span>
+        <span>ou</span>
+        <span class="h-px bg-border"></span>
+      </div>
 
-          <!-- Form Group -->
-            <x-ui.input label="Password" type="password" id="password" wire:model="password" required placeholder="*******" />
+      <div>
+        <form wire:submit.prevent="submit" class="grid gap-y-4">
+          <x-ui.input
+            label="Adresse e-mail"
+            type="email"
+            id="email"
+            name="email"
+            wire:model="email"
+            required
+            placeholder="exemple@mail.com"
+            autocomplete="email"
+          />
 
-          <!-- End Form Group -->
+          <x-ui.input
+            label="Mot de passe"
+            type="password"
+            id="password"
+            name="password"
+            wire:model="password"
+            required
+            placeholder="••••••••"
+            autocomplete="current-password"
+          />
 
-          <!-- Checkbox -->
-          <div class="flex items-center">
-            <div class="flex">
-              <input id="remember-me" name="remember-me" type="checkbox">
-            </div>
-            <div class="ms-3">
-              <label for="remember-me" class="text-sm dark:text-white">Remember me</label>
-            </div>
+          <div class="flex items-center justify-between">
+            <label for="remember" class="flex items-center gap-2 text-sm cursor-pointer select-none">
+              <input id="remember" name="remember" type="checkbox" class="size-4" wire:model="remember">
+              <span>Se souvenir de moi</span>
+            </label>
+            <span class="text-sm text-muted-foreground">Mot de passe oublié ?</span>
           </div>
-          <!-- End Checkbox -->
 
-          <button type="submit" class="">Sign in</button>
-        </div>
-      </form>
-      <!-- End Form -->
+          <x-ui.button class="w-full" type="submit" title="Se connecter" />
+        </form>
+      </div>
     </div>
   </div>
-</div>

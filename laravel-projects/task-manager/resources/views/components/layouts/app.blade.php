@@ -20,10 +20,10 @@
         @vite(['resources/css/app.css'])
         @livewireStyles
     </head>
-    <body class="font-sans antialiased min-h-screen !overflow-x-hidden flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100">
+    <body class="font-sans antialiased min-h-screen !overflow-x-hidden flex flex-col bg-background text-foreground">
         <livewire:partials.header />
 
-        <main class="flex-1 w-full">
+        <main class="flex-1 w-full min-h-screen">
             {{ $slot }}
         </main>
 
