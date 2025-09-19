@@ -5,7 +5,7 @@
         <div class="flex items-center justify-between h-16">
             <!-- Logo ou titre -->
             <div class="flex items-center gap-2">
-                <a href="{{ route('home') }}" class="text-xl font-bold text-primary hover:text-primary-700 transition-colors">{{config('app.name')}}</a>
+                <a href="{{ route('home') }}" wire:navigate class="text-xl font-bold text-primary hover:text-primary-700 transition-colors">{{config('app.name')}}</a>
             </div>
             @if (Route::has('login'))
                 <nav class="hidden md:flex items-center gap-8 text-sm font-medium">
