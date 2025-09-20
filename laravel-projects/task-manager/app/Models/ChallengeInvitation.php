@@ -34,4 +34,3 @@ class ChallengeInvitation extends Model
         return $this->belongsTo(User::class, 'inviter_id');
     }
 }
-

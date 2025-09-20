@@ -2,10 +2,9 @@
 
 namespace App\Livewire\Page;
 
-use App\Models\Project;
-use App\Models\Task;
 use App\Models\ChallengeRun;
 use App\Models\DailyLog;
+use App\Models\Task;
 use Carbon\Carbon;
 use Livewire\Component;
 
@@ -23,7 +22,7 @@ class Dashboard extends Component
             ->where('status', 'active')
             ->where(function ($q) use ($user) {
                 $q->where('owner_id', $user->id)
-                  ->orWhereHas('participantLinks', fn($qq) => $qq->where('user_id', $user->id));
+                    ->orWhereHas('participantLinks', fn ($qq) => $qq->where('user_id', $user->id));
             })
             ->latest('start_date')
             ->first();
@@ -60,7 +59,7 @@ class Dashboard extends Component
             ->where('status', 'active')
             ->where(function ($q) use ($user) {
                 $q->where('owner_id', $user->id)
-                  ->orWhereHas('participantLinks', fn($qq) => $qq->where('user_id', $user->id));
+                    ->orWhereHas('participantLinks', fn ($qq) => $qq->where('user_id', $user->id));
             })
             ->latest('start_date')
             ->first();
@@ -69,6 +68,7 @@ class Dashboard extends Component
         if ($activeRun) {
             $query->where('challenge_run_id', $activeRun->id);
         }
+
         return $query->take($limit)->get();
     }
 

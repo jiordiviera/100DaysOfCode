@@ -4,8 +4,8 @@ namespace App\Livewire\Auth;
 
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
-use Livewire\Attributes\Title;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 
 #[Title('Connexion')]
@@ -16,7 +16,9 @@ use Livewire\Component;
 class Login extends Component
 {
     public string $email = '';
+
     public string $password = '';
+
     public bool $remember = false;
 
     protected array $rules = [
@@ -26,7 +28,7 @@ class Login extends Component
 
     protected array $messages = [
         'email.required' => "L'adresse e-mail est obligatoire.",
-        'email.email' => "Veuillez saisir une adresse e-mail valide.",
+        'email.email' => 'Veuillez saisir une adresse e-mail valide.',
         'password.required' => 'Le mot de passe est obligatoire.',
         'password.min' => 'Le mot de passe doit contenir au moins :min caractères.',
     ];
@@ -42,6 +44,7 @@ class Login extends Component
 
         if (Auth::attempt($credentials, (bool) $this->remember)) {
             session()->regenerate();
+
             return redirect()->intended(route('dashboard'));
         }
 

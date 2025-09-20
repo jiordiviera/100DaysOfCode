@@ -16,8 +16,11 @@ use Livewire\Component;
 class Register extends Component
 {
     public string $name = '';
+
     public string $email = '';
+
     public string $password = '';
+
     public string $password_confirmation = '';
 
     protected array $rules = [
@@ -41,7 +44,7 @@ class Register extends Component
     {
         $this->validate();
 
-        $user = new User();
+        $user = new User;
         $user->name = trim($this->name);
         $user->email = strtolower(trim($this->email));
         // Le hash est géré par le cast sur le modèle User
@@ -49,6 +52,7 @@ class Register extends Component
         $user->save();
 
         auth()->login($user);
+
         return redirect()->route('dashboard');
     }
 

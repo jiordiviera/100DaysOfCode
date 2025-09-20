@@ -8,25 +8,29 @@ use Illuminate\Database\Eloquent\Model;
 class Project extends Model
 {
     use HasUlids;
+
     protected $fillable = [
-        "name",
-        "description",
-        "user_id",
-        "challenge_run_id",
+        'name',
+        'description',
+        'user_id',
+        'challenge_run_id',
     ];
+
     public function tasks()
     {
         return $this->hasMany(Task::class);
     }
+
     public function user()
     {
         return $this->belongsTo(User::class);
     }
+
     public function members()
     {
         return $this->belongsToMany(
             User::class,
-            "project_user",
+            'project_user',
         )->withTimestamps();
     }
 

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Task extends Model
 {
     use HasUlids;
+
     protected $fillable = [
         'title',
         'description',
@@ -15,14 +16,18 @@ class Task extends Model
         'user_id',
         'project_id',
     ];
+
     protected $casts = [
         'is_completed' => 'boolean',
     ];
 
-    public function user(){
+    public function user()
+    {
         return $this->belongsTo(User::class);
     }
-    public function project(){
+
+    public function project()
+    {
         return $this->belongsTo(Project::class);
     }
 }

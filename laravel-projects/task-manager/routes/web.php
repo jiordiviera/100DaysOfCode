@@ -1,20 +1,24 @@
 <?php
 
-use App\Livewire\Page\{Dashboard, ProjectManager, TaskManager};
-use App\Livewire\Page\Welcome;
+use App\Livewire\Page\ChallengeIndex;
+use App\Livewire\Page\ChallengeShow;
 use App\Livewire\Page\DailyChallenge;
-use App\Livewire\Page\{ChallengeIndex, ChallengeShow};
+use App\Livewire\Page\Dashboard;
+use App\Livewire\Page\ProjectManager;
+use App\Livewire\Page\TaskManager;
+use App\Livewire\Page\Welcome;
 use App\Models\ChallengeInvitation;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Route;
 
-Route::get("/", Welcome::class)->name("home");
+Route::get('/', Welcome::class)->name('home');
 
-Route::middleware("auth")->group(function () {
-    Route::get("dashboard", Dashboard::class)->name('dashboard');
-    Route::get("logout", function (){
+Route::middleware('auth')->group(function () {
+    Route::get('dashboard', Dashboard::class)->name('dashboard');
+    Route::get('logout', function () {
         auth()->logout();
-        return redirect()->route("home");
+
+        return redirect()->route('home');
     })->name('logout');
     // Routes Livewire pour la gestion des projets et des tâches
     Route::get('projects', ProjectManager::class)->name('projects.index');
@@ -30,25 +34,26 @@ Route::middleware("auth")->group(function () {
         if ($inv->expires_at && now()->greaterThan($inv->expires_at)) {
             abort(410, 'Invitation expirée');
         }
-        if (!auth()->check()) {
+        if (! auth()->check()) {
             return Redirect::guest(route('login'));
         }
         // Attach participant
         $run = $inv->run;
         $exists = $run->participantLinks()->where('user_id', auth()->id())->exists();
-        if (!$exists) {
+        if (! $exists) {
             $run->participantLinks()->create([
                 'user_id' => auth()->id(),
                 'joined_at' => now(),
             ]);
         }
-        if (!$inv->accepted_at) {
+        if (! $inv->accepted_at) {
             $inv->accepted_at = now();
             $inv->save();
         }
+
         return Redirect::route('challenges.show', ['run' => $run->id])
             ->with('message', 'Vous avez rejoint le challenge !');
     })->name('challenges.accept');
 });
 
-require __DIR__ . "/auth.php";
+require __DIR__.'/auth.php';

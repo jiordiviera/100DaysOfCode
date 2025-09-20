@@ -4,8 +4,8 @@ namespace App\Livewire\Page;
 
 use App\Models\ChallengeRun;
 use Illuminate\Contracts\View\View;
-use Livewire\Attributes\Title;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 
 #[Title('Mes Challenges')]
@@ -13,8 +13,11 @@ use Livewire\Component;
 class ChallengeIndex extends Component
 {
     public string $title = '';
+
     public string $start_date;
+
     public int $target_days = 100;
+
     public bool $is_public = false;
 
     public function mount(): void

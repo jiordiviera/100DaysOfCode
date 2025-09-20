@@ -7,17 +7,19 @@ use App\Models\ChallengeRun;
 use App\Models\DailyLog;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
-use Livewire\Attributes\Title;
-use Livewire\Attributes\Layout;
-use Livewire\Component;
 use Illuminate\Support\Str;
+use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
+use Livewire\Component;
 
 #[Title('Challenge')]
 #[Layout('components.layouts.app')]
 class ChallengeShow extends Component
 {
     public ChallengeRun $run;
+
     public string $inviteEmail = '';
+
     public ?string $lastInviteLink = null;
 
     public function mount(ChallengeRun $run): void
@@ -29,8 +31,11 @@ class ChallengeShow extends Component
     protected function canView(): bool
     {
         $user = auth()->user();
-        if ($user->id === $this->run->owner_id) return true;
-        return $this->run->participantLinks->contains(fn($p) => $p->user_id === $user->id);
+        if ($user->id === $this->run->owner_id) {
+            return true;
+        }
+
+        return $this->run->participantLinks->contains(fn ($p) => $p->user_id === $user->id);
     }
 
     public function sendInvite(): void
@@ -45,6 +50,7 @@ class ChallengeShow extends Component
         $already = $this->run->participants()->where('email', $this->inviteEmail)->exists();
         if ($already) {
             $this->addError('inviteEmail', 'Cet utilisateur participe déjà.');
+
             return;
         }
 
@@ -55,6 +61,7 @@ class ChallengeShow extends Component
             ->exists();
         if ($pending) {
             $this->addError('inviteEmail', 'Invitation déjà envoyée.');
+
             return;
         }
 
@@ -78,7 +85,9 @@ class ChallengeShow extends Component
         $byUser = [];
         foreach ($this->run->participantLinks as $link) {
             $u = $link->user;
-            if (!$u) continue;
+            if (! $u) {
+                continue;
+            }
             $done = DailyLog::where('challenge_run_id', $this->run->id)
                 ->where('user_id', $u->id)
                 ->count();
@@ -90,6 +99,7 @@ class ChallengeShow extends Component
                 'streak' => $streak,
             ];
         }
+
         return $byUser;
     }
 
@@ -97,7 +107,9 @@ class ChallengeShow extends Component
     {
         // Current streak counted from today's expected day number backwards
         $start = $this->run->start_date;
-        if (!$start) return 0;
+        if (! $start) {
+            return 0;
+        }
         $todayDay = Carbon::now()->diffInDays(Carbon::parse($start)) + 1;
         // Build a set of done day_numbers
         $days = DailyLog::where('challenge_run_id', $this->run->id)
@@ -107,9 +119,12 @@ class ChallengeShow extends Component
         $doneSet = array_fill_keys($days, true);
         $streak = 0;
         for ($d = $todayDay; $d >= 1; $d--) {
-            if (!isset($doneSet[$d])) break;
+            if (! isset($doneSet[$d])) {
+                break;
+            }
             $streak++;
         }
+
         return $streak;
     }
 
@@ -133,7 +148,7 @@ class ChallengeShow extends Component
         // Global progression
         $participantsCount = max(1, $this->run->participantLinks->count());
         $totalDone = DailyLog::where('challenge_run_id', $this->run->id)->count();
-        $globalPercent = round(min(100, ($totalDone / ($participantsCount * max(1, (int)$this->run->target_days))) * 100), 1);
+        $globalPercent = round(min(100, ($totalDone / ($participantsCount * max(1, (int) $this->run->target_days))) * 100), 1);
 
         // My done days set for calendar
         $myDoneDays = DailyLog::where('challenge_run_id', $this->run->id)
@@ -159,6 +174,7 @@ class ChallengeShow extends Component
         // Ne pas retirer l'owner par ce chemin
         if ($link->user_id === $this->run->owner_id) {
             $this->addError('inviteEmail', "Vous ne pouvez pas retirer l'owner.");
+
             return;
         }
         $link->delete();

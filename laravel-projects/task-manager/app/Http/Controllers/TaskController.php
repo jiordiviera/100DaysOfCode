@@ -17,7 +17,8 @@ class TaskController extends Controller
         $tasks = $project
             ->tasks()
             ->latest()
-            ->paginate($request->get("per_page", 15));
+            ->paginate($request->get('per_page', 15));
+
         return TaskResource::collection($tasks);
     }
 
@@ -27,7 +28,8 @@ class TaskController extends Controller
     public function store(Request $request, Project $project)
     {
         $task = $project->tasks()->create($request->all());
-        return new TaskResource($task->load("project"));
+
+        return new TaskResource($task->load('project'));
     }
 
     /**
@@ -35,7 +37,7 @@ class TaskController extends Controller
      */
     public function show(Task $task)
     {
-        return new TaskResource($task->load("project"));
+        return new TaskResource($task->load('project'));
     }
 
     /**
@@ -44,7 +46,8 @@ class TaskController extends Controller
     public function update(Request $request, Task $task)
     {
         $task->update($request->all());
-        return new TaskResource($task->load("project"));
+
+        return new TaskResource($task->load('project'));
     }
 
     /**
@@ -53,6 +56,7 @@ class TaskController extends Controller
     public function destroy(Task $task)
     {
         $task->delete();
+
         return response()->noContent();
     }
 }

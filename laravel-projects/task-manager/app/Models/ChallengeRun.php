@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class ChallengeRun extends Model
 {
     use HasUlids;
+
     protected $fillable = [
         'owner_id',
         'title',

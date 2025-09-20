@@ -15,6 +15,7 @@ class ProjectController extends Controller
     public function index(Request $request)
     {
         $projects = Project::latest()->paginate($request->get('per_page', 15));
+
         return ProjectResource::collection($projects);
     }
 
@@ -24,6 +25,7 @@ class ProjectController extends Controller
     public function store(StoreProjectRequest $request)
     {
         $project = Project::create($request->validated());
+
         return new ProjectResource($project);
     }
 
@@ -41,6 +43,7 @@ class ProjectController extends Controller
     public function update(Request $request, Project $project)
     {
         $project->update($request->all());
+
         return new ProjectResource($project);
     }
 
@@ -50,6 +53,7 @@ class ProjectController extends Controller
     public function destroy(Project $project)
     {
         $project->delete();
+
         return response()->noContent();
     }
 }

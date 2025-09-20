@@ -2,16 +2,18 @@
 
 namespace App\Livewire\Page;
 
-use Livewire\Component;
 use App\Models\Project;
 use App\Models\Task;
-use Illuminate\Support\Facades\Route;
+use Livewire\Component;
 
 class TaskManager extends Component
 {
     public $project;
+
     public $taskName = '';
+
     public $editTaskId = null;
+
     public $editTaskName = '';
 
     public function mount($project)

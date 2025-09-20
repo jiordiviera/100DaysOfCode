@@ -2,22 +2,29 @@
 
 namespace App\Livewire\Page;
 
-use Livewire\Component;
-use Livewire\Attributes\Layout;
+use App\Models\ChallengeRun;
 use App\Models\Project;
 use App\Models\Task;
-use App\Models\ChallengeRun;
+use Livewire\Attributes\Layout;
+use Livewire\Component;
 
 #[Layout('components.layouts.app')]
 class ProjectManager extends Component
 {
     public $projectName = '';
+
     public $taskName = '';
+
     public $taskProjectId = '';
+
     public $editProjectId = null;
+
     public $editProjectName = '';
+
     public $editTaskId = null;
+
     public $editTaskName = '';
+
     public ?string $activeRunId = null;
 
     public function createProject(): void
@@ -103,7 +110,7 @@ class ProjectManager extends Component
             ->where('status', 'active')
             ->where(function ($q) use ($user) {
                 $q->where('owner_id', $user->id)
-                  ->orWhereHas('participantLinks', fn($qq) => $qq->where('user_id', $user->id));
+                    ->orWhereHas('participantLinks', fn ($qq) => $qq->where('user_id', $user->id));
             })
             ->latest('start_date')
             ->first();
@@ -118,15 +125,16 @@ class ProjectManager extends Component
         $projects = Project::with('tasks', 'user', 'members')
             ->where(function ($q) use ($user) {
                 $q->where('user_id', $user->id)
-                  ->orWhereHas('members', function($qq) use ($user) {
-                      $qq->where('users.id', $user->id);
-                  });
+                    ->orWhereHas('members', function ($qq) use ($user) {
+                        $qq->where('users.id', $user->id);
+                    });
             })
-            ->when($this->activeRunId, fn($q) => $q->where('challenge_run_id', $this->activeRunId))
+            ->when($this->activeRunId, fn ($q) => $q->where('challenge_run_id', $this->activeRunId))
             ->latest()
             ->get();
 
         $activeRun = $this->activeRunId ? ChallengeRun::find($this->activeRunId) : null;
+
         return view('livewire.page.project-manager', [
             'projects' => $projects,
             'activeRun' => $activeRun,

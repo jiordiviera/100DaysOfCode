@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class DailyLog extends Model
 {
     use HasUlids;
+
     protected $fillable = [
         'challenge_run_id',
         'user_id',

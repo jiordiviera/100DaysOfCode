@@ -2,25 +2,33 @@
 
 namespace App\Livewire\Page;
 
-use Livewire\Component;
-use Illuminate\Http\RedirectResponse;
-use Livewire\Attributes\Layout;
-use App\Models\Project;
-use App\Models\DailyLog;
 use App\Models\ChallengeRun;
+use App\Models\DailyLog;
+use App\Models\Project;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Carbon;
+use Livewire\Attributes\Layout;
+use Livewire\Component;
 
 #[Layout('components.layouts.app')]
 class DailyChallenge extends Component
 {
     public $challengeDate;
+
     public $description;
+
     public $projectsWorkedOn = [];
+
     public $hoursCoded = 1;
+
     public $learnings;
+
     public $challengesFaced;
+
     public $todayEntry;
+
     public $allProjects;
+
     public $challengeRunId;
 
     public function mount()
@@ -28,7 +36,7 @@ class DailyChallenge extends Component
         $this->challengeDate = now()->format('Y-m-d');
         $this->allProjects = Project::query()
             ->where('user_id', auth()->id())
-            ->orWhereHas('members', fn($q) => $q->where('users.id', auth()->id()))
+            ->orWhereHas('members', fn ($q) => $q->where('users.id', auth()->id()))
             ->get();
         if ($redirect = $this->ensureChallengeRun()) {
             return $redirect;
@@ -45,12 +53,14 @@ class DailyChallenge extends Component
             ->first();
 
         // If no run yet, redirect to challenges page to create one explicitly
-        if (!$run) {
+        if (! $run) {
             session()->flash('message', 'Créez votre challenge pour commencer votre journal quotidien.');
+
             return redirect()->route('challenges.index');
         }
 
         $this->challengeRunId = $run->id;
+
         return null;
     }
 
@@ -87,7 +97,7 @@ class DailyChallenge extends Component
         $this->validate([
             'description' => 'required|min:10',
             'hoursCoded' => 'required|numeric|min:0.25',
-            'projectsWorkedOn' => 'array'
+            'projectsWorkedOn' => 'array',
         ]);
 
         $run = ChallengeRun::findOrFail($this->challengeRunId);

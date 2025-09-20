@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Challenge extends Model
 {
     use HasUlids;
+
     protected $fillable = [
         'user_id',
         'challenge_date',
@@ -20,6 +21,6 @@ class Challenge extends Model
     ];
 
     protected $casts = [
-        'projects_worked_on' => 'array'
+        'projects_worked_on' => 'array',
     ];
 }
