@@ -31,6 +31,7 @@
     <!-- Styles / Scripts -->
     @vite(["resources/css/app.css"])
     @livewireStyles
+      @fluxAppearance
   </head>
   <body
     class="font-sans antialiased min-h-screen !overflow-x-hidden flex flex-col bg-background text-foreground"
@@ -45,5 +46,6 @@
 
     <!-- Scripts -->
     @livewireScripts
+  @fluxScripts
   </body>
 </html>

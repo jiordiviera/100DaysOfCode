@@ -25,16 +25,22 @@ class ChallengeIndex extends Component
         $this->start_date = now()->toDateString();
     }
 
-    public function create(): void
+    protected function rules(): array
     {
-        $this->validate([
+        return [
+            'title' => 'required|unique:challenge_runs,title|max:255',
             'start_date' => 'required|date',
             'target_days' => 'required|integer|min:1|max:365',
-        ]);
+        ];
+    }
+
+    public function create(): void
+    {
+        $this->validate();
 
         $run = ChallengeRun::create([
             'owner_id' => auth()->id(),
-            'title' => $this->title ?: '100 Days of Code',
+            'title' => $this->title,
             'start_date' => $this->start_date,
             'target_days' => $this->target_days,
             'status' => 'active',

@@ -1,11 +1,11 @@
-<div class="bg-gray-50 dark:bg-gray-900 min-h-screen">
+<div class="min-h-screen">
   <!-- En-tête du tableau de bord -->
-  <div class="bg-white dark:bg-gray-800 shadow">
+  <div class="shadow bg-muted">
     <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-      <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">
+      <h1 class="text-2xl font-semibold">
         Tableau de bord
       </h1>
-      <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
+      <p class="mt-1 text-sm">
         Bienvenue dans votre espace 100DaysOfCode
       </p>
     </div>
@@ -17,13 +17,13 @@
       <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <!-- Statistique 1: Nombre de projets -->
         <div
-          class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg"
+          class="bg-muted overflow-hidden shadow rounded-lg"
         >
           <div class="p-5">
             <div class="flex items-center">
-              <div class="flex-shrink-0 bg-blue-500 rounded-md p-3">
+              <div class="flex-shrink-0 bg-primary rounded-md p-3">
                 <svg
-                  class="h-6 w-6 text-white"
+                  class="h-6 w-6 text-foreground"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -40,13 +40,13 @@
               <div class="ml-5 w-0 flex-1">
                 <dl>
                   <dt
-                    class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate"
+                    class="text-sm font-medium text-foreground/80 truncate"
                   >
                     Total Projets
                   </dt>
                   <dd>
                     <div
-                      class="text-lg font-medium text-gray-900 dark:text-white"
+                      class="text-lg font-medium "
                     >
                       {{ $stats["projectCount"] }}
                     </div>
@@ -55,7 +55,7 @@
               </div>
             </div>
           </div>
-          <div class="bg-gray-50 dark:bg-gray-700 px-5 py-3">
+          <div class="bg-muted-foreground/20 px-5 py-3">
             <div class="text-sm">
               <a
                 href="{{ route("projects.index") }}"
@@ -69,13 +69,13 @@
 
         <!-- Statistique 2: Nombre de tâches -->
         <div
-          class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg"
+          class="bg-muted overflow-hidden shadow rounded-lg"
         >
           <div class="p-5">
             <div class="flex items-center">
               <div class="flex-shrink-0 bg-green-500 rounded-md p-3">
                 <svg
-                  class="h-6 w-6 text-white"
+                  class="h-6 w-6 text-foreground"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -92,13 +92,13 @@
               <div class="ml-5 w-0 flex-1">
                 <dl>
                   <dt
-                    class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate"
+                    class="text-sm font-medium truncate"
                   >
                     Total Tâches
                   </dt>
                   <dd>
                     <div
-                      class="text-lg font-medium text-gray-900 dark:text-white"
+                      class="text-lg font-medium text-foreground"
                     >
                       {{ $stats["taskCount"] }}
                     </div>
@@ -107,7 +107,7 @@
               </div>
             </div>
           </div>
-          <div class="bg-gray-50 dark:bg-gray-700 px-5 py-3">
+          <div class="bg-muted-foreground/20 px-5 py-3">
             <div class="text-sm">
               <a
                 href="#tasks"
@@ -121,7 +121,7 @@
 
         <!-- Statistique 3: Tâches complétées -->
         <div
-          class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg"
+          class="bg-muted overflow-hidden shadow rounded-lg"
         >
           <div class="p-5">
             <div class="flex items-center">
@@ -144,13 +144,13 @@
               <div class="ml-5 w-0 flex-1">
                 <dl>
                   <dt
-                    class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate"
+                    class="text-sm font-medium text-foreground truncate"
                   >
                     Tâches Complétées
                   </dt>
                   <dd>
                     <div
-                      class="text-lg font-medium text-gray-900 dark:text-white"
+                      class="text-lg font-medium text-foreground"
                     >
                       {{ $stats["completedTaskCount"] }}
                     </div>
@@ -159,7 +159,7 @@
               </div>
             </div>
           </div>
-          <div class="bg-gray-50 dark:bg-gray-700 px-5 py-3">
+          <div class="bg-muted-foreground/20 px-5 py-3">
             <div class="text-sm">
               <span class="font-medium text-indigo-600 dark:text-indigo-400">
                 @php
@@ -174,13 +174,13 @@
 
         <!-- Statistique 4: Jours du challenge actif -->
         <div
-          class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg"
+          class="bg-muted overflow-hidden shadow rounded-lg"
         >
           <div class="p-5">
             <div class="flex items-center">
               <div class="flex-shrink-0 bg-purple-500 rounded-md p-3">
                 <svg
-                  class="h-6 w-6 text-white"
+                  class="h-6 w-6 text-foreground"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -197,7 +197,7 @@
               <div class="ml-5 w-0 flex-1">
                 <dl>
                   <dt
-                    class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate"
+                    class="text-sm font-medium text-foreground truncate"
                   >
                     Jours du défi
                   </dt>
@@ -210,13 +210,13 @@
 
                     @if ($dayNumber)
                       <div
-                        class="text-lg font-medium text-gray-900 dark:text-white"
+                        class="text-lg font-medium text-foreground"
                       >
                         Jour
                         {{ min($targetDays, $dayNumber) }}/{{ $targetDays }}
                       </div>
                     @else
-                      <div class="text-sm text-gray-600 dark:text-gray-300">
+                      <div class="text-sm text-foreground">
                         Aucun challenge actif
                       </div>
                     @endif
@@ -225,7 +225,7 @@
               </div>
             </div>
           </div>
-          <div class="bg-gray-50 dark:bg-gray-700 px-5 py-3">
+          <div class="bg-muted-foreground/20 px-5 py-3">
             <div class="text-sm">
               @if (! empty($dayNumber))
                 @php
@@ -251,10 +251,10 @@
 
     <!-- Barre de progression -->
     <div class="px-4 py-2 sm:px-0">
-      <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+      <div class="bg-muted-foreground/20 overflow-hidden shadow rounded-lg">
         <div class="p-5">
           <h3
-            class="text-lg leading-6 font-medium text-gray-900 dark:text-white"
+            class="text-lg leading-6 font-medium text-foreground"
           >
             Progression du défi
           </h3>
@@ -268,25 +268,25 @@
                 <div class="flex mb-2 items-center justify-between">
                   <div>
                     <span
-                      class="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-indigo-600 bg-indigo-200 dark:text-indigo-200 dark:bg-indigo-800"
+                      class="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-primary bg-primary/10"
                     >
                       {{ $active["run"]->title ?? "Challenge actif" }}
                     </span>
                   </div>
                   <div class="text-right">
                     <span
-                      class="text-xs font-semibold inline-block text-indigo-600 dark:text-indigo-300"
+                      class="text-xs font-semibold inline-block text-primary"
                     >
                       {{ $active["myPercent"] }}%
                     </span>
                   </div>
                 </div>
                 <div
-                  class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-indigo-200 dark:bg-gray-700"
+                  class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-muted-foreground/20"
                 >
                   <div
                     style="width: {{ $active["myPercent"] }}%"
-                    class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-indigo-500"
+                    class="shadow-none flex flex-col text-center whitespace-nowrap text-foreground justify-center bg-primary"
                   ></div>
                 </div>
                 <a
@@ -320,7 +320,7 @@
     <!-- Section Projets récents -->
     <div class="px-4 py-6 sm:px-0">
       <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
+        <h2 class="text-xl font-semibold ">
           Mes projets récents
         </h2>
         <a
@@ -334,12 +334,12 @@
       <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         @forelse ($recentProjects as $project)
           <div
-            class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg border border-gray-200 dark:border-gray-700"
+            class="bg-muted-foreground/20 overflow-hidden shadow rounded-lg border border-gray-200 dark:border-gray-700"
           >
             <div class="p-5">
               <div class="flex items-center justify-between mb-3">
                 <h3
-                  class="text-lg font-medium text-gray-900 dark:text-white truncate"
+                  class="text-lg font-medium truncate"
                 >
                   {{ $project->name }}
                 </h3>
@@ -446,7 +446,7 @@
         </a>
       </div>
 
-      <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+      <div class="bg-muted-foreground/20 overflow-hidden shadow rounded-lg">
         <ul class="divide-y divide-gray-200 dark:divide-gray-700">
           @forelse ($recentTasks as $task)
             <li class="px-6 py-4 flex items-center">

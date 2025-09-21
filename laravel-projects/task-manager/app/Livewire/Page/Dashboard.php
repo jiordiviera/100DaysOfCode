@@ -6,11 +6,12 @@ use App\Models\ChallengeRun;
 use App\Models\DailyLog;
 use App\Models\Task;
 use Carbon\Carbon;
+use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
 class Dashboard extends Component
 {
-    public function getUserStats()
+    public function getUserStats(): array
     {
         $user = auth()->user();
         $ownedProjects = $user->projects()->pluck('id');
@@ -30,7 +31,7 @@ class Dashboard extends Component
         $active = null;
         if ($activeRun) {
             $target = max(1, (int) $activeRun->target_days);
-            $dayNumber = Carbon::now()->diffInDays(Carbon::parse($activeRun->start_date)) + 1;
+            $dayNumber = max(1, Carbon::now()->diffInDays(Carbon::parse($activeRun->start_date)) + 1);
             $myDone = DailyLog::where('challenge_run_id', $activeRun->id)->where('user_id', $user->id)->count();
             $myPercent = round(min(100, ($myDone / $target) * 100));
             $active = [
@@ -72,7 +73,7 @@ class Dashboard extends Component
         return $query->take($limit)->get();
     }
 
-    public function getRecentTasks($limit = 5)
+    public function getRecentTasks($limit = 5): \Illuminate\Database\Eloquent\Collection|array
     {
         return Task::with('project')
             ->where('user_id', auth()->id())
@@ -81,7 +82,7 @@ class Dashboard extends Component
             ->get();
     }
 
-    public function render()
+    public function render(): View
     {
         $stats = $this->getUserStats();
         $recentProjects = $this->getRecentProjects();

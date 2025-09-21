@@ -24,6 +24,7 @@ class Login extends Component
     protected array $rules = [
         'email' => 'required|email',
         'password' => 'required|min:6',
+        'remember' => 'nullable|boolean',
     ];
 
     protected array $messages = [
@@ -31,6 +32,7 @@ class Login extends Component
         'email.email' => 'Veuillez saisir une adresse e-mail valide.',
         'password.required' => 'Le mot de passe est obligatoire.',
         'password.min' => 'Le mot de passe doit contenir au moins :min caractères.',
+        'remember.boolean' => 'La valeur de "Se souvenir de moi" est invalide.',
     ];
 
     public function submit()

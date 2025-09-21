@@ -5,6 +5,7 @@ namespace App\Livewire\Page;
 use App\Models\ChallengeRun;
 use App\Models\DailyLog;
 use App\Models\Project;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Layout;
@@ -36,12 +37,29 @@ class DailyChallenge extends Component
         $this->challengeDate = now()->format('Y-m-d');
         $this->allProjects = Project::query()
             ->where('user_id', auth()->id())
-            ->orWhereHas('members', fn ($q) => $q->where('users.id', auth()->id()))
+            ->orWhereHas('members', fn($q) => $q->where('users.id', auth()->id()))
             ->get();
         if ($redirect = $this->ensureChallengeRun()) {
             return $redirect;
         }
         $this->loadTodayEntry();
+    }
+
+    protected function rules(): array
+    {
+        return [
+            'description' => 'required|min:10',
+            'hoursCoded' => 'required|numeric|min:0.25',
+            'projectsWorkedOn' => 'array',
+        ];
+    }
+
+    protected function getMessages(): array
+    {
+        return [
+            'description.required' => 'La description est obligatoire.',
+            'description.min' => 'La description '
+        ];
     }
 
     protected function ensureChallengeRun(): ?RedirectResponse
@@ -53,7 +71,7 @@ class DailyChallenge extends Component
             ->first();
 
         // If no run yet, redirect to challenges page to create one explicitly
-        if (! $run) {
+        if (!$run) {
             session()->flash('message', 'Créez votre challenge pour commencer votre journal quotidien.');
 
             return redirect()->route('challenges.index');
@@ -64,7 +82,7 @@ class DailyChallenge extends Component
         return null;
     }
 
-    public function loadTodayEntry()
+    public function loadTodayEntry(): void
     {
         $run = ChallengeRun::findOrFail($this->challengeRunId);
         $date = Carbon::parse($this->challengeDate);
@@ -92,13 +110,9 @@ class DailyChallenge extends Component
         }
     }
 
-    public function saveEntry()
+    public function saveEntry(): void
     {
-        $this->validate([
-            'description' => 'required|min:10',
-            'hoursCoded' => 'required|numeric|min:0.25',
-            'projectsWorkedOn' => 'array',
-        ]);
+        $this->validate();
 
         $run = ChallengeRun::findOrFail($this->challengeRunId);
         $date = Carbon::parse($this->challengeDate);
@@ -124,7 +138,7 @@ class DailyChallenge extends Component
         $this->loadTodayEntry();
     }
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.page.daily-challenge');
     }

@@ -1,5 +1,5 @@
-<div class="max-w-5xl mx-auto py-8 space-y-6">
-  <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+<div class="max-w-5xl mx-auto py-8 space-y-6" xmlns:flux="http://www.w3.org/1999/html">
+  <div class="bg-muted-foreground/20 shadow rounded-lg p-6">
     <div class="grid sm:grid-cols-3 gap-4 text-sm">
       <div>
         <div class="text-muted-foreground">Participants</div>
@@ -15,7 +15,7 @@
       </div>
     </div>
   </div>
-  <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+  <div class="bg-muted-foreground/20 shadow rounded-lg p-6">
     <div class="flex items-start justify-between gap-4">
       <div>
         <h1 class="text-2xl font-bold">
@@ -39,7 +39,7 @@
     </div>
   </div>
 
-  <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+  <div class="bg-muted-foreground/20 shadow rounded-lg p-6">
     <h2 class="font-semibold mb-4">Participants</h2>
     <div class="space-y-3">
       @foreach ($progress as $item)
@@ -87,7 +87,7 @@
   </div>
 
   @if (auth()->id() === $run->owner_id)
-    <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 space-y-4">
+    <div class="bg-muted-foreground/20 shadow rounded-lg p-6 space-y-4">
       <h2 class="font-semibold">Inviter des participants</h2>
       @if (session()->has("message"))
         <div
@@ -101,19 +101,11 @@
         wire:submit.prevent="sendInvite"
         class="flex gap-2 items-end flex-wrap"
       >
-        <div class="grow min-w-60">
-          <label class="block text-sm mb-1">Email</label>
-          <input
-            type="email"
-            wire:model.defer="inviteEmail"
-            placeholder="ex: ami@exemple.com"
-            class="w-full"
-          />
-          @error("inviteEmail")
-            <span class="text-xs text-red-600">{{ $message }}</span>
-          @enderror
-        </div>
-        <x-ui.button type="submit" title="Générer le lien" />
+          <div class="grow min-w-60">
+
+          <flux:input wire:model="inviteEmail" class="" type="email" placeholder="Email" />
+          </div>
+          <flux:button size="sm" type="submit" >Générer le lien</flux:button>
       </form>
       @if ($lastInviteLink)
         <div class="text-sm">
@@ -137,12 +129,12 @@
                 >
                   Lien
                 </a>
-                <button
+                <flux:button
                   class="text-destructive hover:underline"
                   wire:click="revokeInvite('{{ $inv->getKey() }}')"
                 >
                   Révoquer
-                </button>
+                </flux:button>
               </span>
             </li>
           @empty
@@ -155,7 +147,7 @@
     </div>
   @endif
 
-  <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+  <div class="bg-muted-foreground/20 shadow rounded-lg p-6">
     <div class="flex items-center justify-between mb-4">
       <h2 class="font-semibold">Mes derniers logs</h2>
       @if (auth()->id() !== $run->owner_id)
@@ -184,7 +176,7 @@
     </ul>
   </div>
 
-  <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+  <div class="bg-muted-foreground/20 shadow rounded-lg p-6">
     <h2 class="font-semibold mb-3">
       Calendrier ({{ $run->target_days }} jours)
     </h2>
@@ -200,7 +192,7 @@
         @endphp
 
         <div
-          class="h-6 rounded text-[10px] flex items-center justify-center {{ $done ? "bg-primary text-primary-foreground" : "bg-border text-foreground/50" }}"
+          class="h-6 rounded text-[10px] flex items-center justify-center {{ $done ? "bg-primary text-foreground" : "bg-muted text-foreground" }}"
           title="Jour {{ $d }}"
         >
           {{ $d }}

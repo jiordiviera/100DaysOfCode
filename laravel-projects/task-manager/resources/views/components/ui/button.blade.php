@@ -1,25 +1,16 @@
 @props([
   "title" => "",
   "variant" => "default",
-  //default,
-  destructive,
-  outline,
-  secondary,
-  ghost,
-  link"size" => "default",
-  //default,
-  sm,
-  lg,
-  icon"link" => false,
-  //Iftrue,
-  renderasananchortag,
+  "size" => "default",
+  //default, sm,lg,icon
+  "link" => false,
 ])
 
 @php
   $base = 'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*=\'size-\'])]:size-4 [&_svg]:shrink-0';
 
   $variants = [
-    "default" => "bg-primary text-primary-foreground hover:bg-primary/90",
+    "default" => "bg-primary text-foreground hover:bg-primary/90",
     "destructive" => "bg-destructive text-destructive-foreground hover:bg-destructive/90",
     "outline" => "border bg-background shadow-xs hover:bg-accent/60 hover:text-accent-foreground dark:bg-input/30 dark:border-input",
     "secondary" => "bg-secondary text-secondary-foreground hover:bg-secondary/80",
