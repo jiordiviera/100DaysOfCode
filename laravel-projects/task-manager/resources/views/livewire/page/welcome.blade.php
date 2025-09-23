@@ -57,7 +57,7 @@
                             >
                                 @auth
                                     Suivre le challenge
-                                @elseauth
+                                @else
                                     Commencer le défi
                                 @endauth
                             </a>

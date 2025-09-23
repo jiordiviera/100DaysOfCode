@@ -325,7 +325,7 @@
         </h2>
         <a
           href="{{ route("projects.index") }}"
-          class="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+          class="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-foreground bg-primary"
         >
           Tous les projets
         </a>
@@ -392,11 +392,11 @@
           </div>
         @empty
           <div
-            class="col-span-full bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg border border-gray-200 dark:border-gray-700"
+            class="col-span-full bg-muted-foreground/20 overflow-hidden shadow rounded-lg border-border"
           >
             <div class="p-8 text-center">
               <svg
-                class="mx-auto h-12 w-12 text-gray-400"
+                class="mx-auto h-12 w-12 text-muted-foreground"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
@@ -410,18 +410,18 @@
                 />
               </svg>
               <h3
-                class="mt-2 text-lg font-medium text-gray-900 dark:text-white"
+                class="mt-2 text-lg font-medium"
               >
                 Aucun projet
               </h3>
-              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              <p class="mt-1 text-sm">
                 Commencez par créer votre premier projet pour le défi
                 100DaysOfCode.
               </p>
               <div class="mt-6">
                 <a
                   href="{{ route("projects.index") }}"
-                  class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-foreground bg-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary/80"
                 >
                   Créer un projet
                 </a>
@@ -435,7 +435,7 @@
     <!-- Section Tâches récentes -->
     <div class="px-4 py-6 sm:px-0" id="tasks">
       <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
+        <h2 class="text-xl font-semibold ">
           Mes tâches récentes
         </h2>
         <a
@@ -471,10 +471,10 @@
                     </span>
                   @else
                     <span
-                      class="h-8 w-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center"
+                      class="h-8 w-8 rounded-full bg-muted-foreground/70 flex items-center justify-center"
                     >
                       <svg
-                        class="h-5 w-5 text-gray-500 dark:text-gray-400"
+                        class="h-5 w-5 bg-muted"
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 20 20"
                         fill="currentColor"
@@ -490,12 +490,12 @@
                 </div>
                 <div class="min-w-0 flex-1 px-4">
                   <div>
-                    <p
-                      class="text-sm font-medium text-gray-900 dark:text-white truncate"
+                    <h4
+                      class="text-sm font-medium truncate"
                     >
                       {{ $task->title }}
-                    </p>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                    </h4>
+                    <p class="text-sm">
                       Projet: {{ $task->project->name }}
                     </p>
                   </div>
