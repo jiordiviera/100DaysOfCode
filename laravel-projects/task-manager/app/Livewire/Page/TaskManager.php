@@ -4,71 +4,91 @@ namespace App\Livewire\Page;
 
 use App\Models\Project;
 use App\Models\Task;
+use Illuminate\Contracts\View\View;
+use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
+use Livewire\Attributes\Validate;
 use Livewire\Component;
 
+#[Layout('components.layouts.app')]
 class TaskManager extends Component
 {
-    public $project;
+    public Project $project;
 
-    public $taskName = '';
+    #[Locked]
+    public string $projectId;
 
-    public $editTaskId = null;
+    #[Validate('required|string|max:255')]
+    public string $taskName = '';
 
-    public $editTaskName = '';
+    public ?int $editTaskId = null;
 
-    public function mount($project)
+    #[Validate('required|string|max:255')]
+    public string $editTaskName = '';
+
+    public function mount(Project $project): void
     {
-        $this->project = Project::with('tasks.user')->findOrFail($project);
+        $this->projectId = $project->id;
+        $this->refreshProject();
     }
 
-    public function createTask()
+    public function createTask(): void
     {
-        $this->validate([
-            'taskName' => 'required|string|max:255',
-        ]);
+        $this->validateOnly('taskName');
+
         Task::create([
             'title' => $this->taskName,
             'project_id' => $this->project->id,
             'user_id' => auth()->id(),
         ]);
-        $this->taskName = '';
-        $this->project->refresh();
+
+        $this->reset('taskName');
+        $this->resetErrorBag('taskName');
+        $this->refreshProject();
     }
 
-    public function editTask($id)
+    public function editTask(int $id): void
     {
         $task = Task::findOrFail($id);
+
         $this->editTaskId = $task->id;
         $this->editTaskName = $task->title;
     }
 
-    public function updateTask()
+    public function updateTask(): void
     {
-        $this->validate([
-            'editTaskName' => 'required|string|max:255',
-        ]);
+        $this->validateOnly('editTaskName');
+
         $task = Task::findOrFail($this->editTaskId);
         $task->update(['title' => $this->editTaskName]);
-        $this->editTaskId = null;
-        $this->editTaskName = '';
-        $this->project->refresh();
+
+        $this->reset('editTaskId', 'editTaskName');
+        $this->resetErrorBag('editTaskName');
+        $this->refreshProject();
     }
 
-    public function deleteTask($id)
+    public function deleteTask(string $id): void
     {
         Task::findOrFail($id)->delete();
-        $this->project->refresh();
+
+        $this->refreshProject();
     }
 
-    public function completeTask($id)
+    public function completeTask(string $id): void
     {
         $task = Task::findOrFail($id);
-        $task->is_completed = true;
-        $task->save();
-        $this->project->refresh();
+        dd($task);
+        $task->update(['is_completed' => true]);
+
+        $this->refreshProject();
     }
 
-    public function render()
+    protected function refreshProject(): void
+    {
+        $this->project = Project::with('tasks.user')->findOrFail($this->projectId);
+    }
+
+    public function render(): View
     {
         return view('livewire.page.task-manager', [
             'project' => $this->project,

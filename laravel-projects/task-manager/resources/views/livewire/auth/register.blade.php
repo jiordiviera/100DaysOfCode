@@ -6,22 +6,25 @@
       <h1 class="block text-2xl font-bold">Créer un compte</h1>
       <p class="mt-2 text-sm text-muted-foreground">
         Vous avez déjà un compte ?
-        <x-ui.button
-          :link="true"
-          variant="link"
-          size="sm"
+        <x-filament::link
           href="{{ route('login') }}"
           wire:navigate
-          title="Se connecter"
-        />
+        >
+          Se connecter
+        </x-filament::link>
       </p>
     </div>
 
     <div class="mt-6">
-      <x-ui.button class="w-full justify-center" variant="outline" disabled>
+      <x-filament::button
+        class="w-full justify-center"
+        color="gray"
+        outlined
+        disabled
+      >
         @include("components.ui.icons.github")
         <span>S'inscrire avec GitHub (bientôt)</span>
-      </x-ui.button>
+      </x-filament::button>
     </div>
 
     <div
@@ -78,7 +81,9 @@
           autocomplete="new-password"
         />
 
-        <x-ui.button class="w-full" type="submit" title="Créer le compte" />
+        <x-filament::button class="w-full" type="submit">
+          Créer le compte
+        </x-filament::button>
       </form>
     </div>
   </div>

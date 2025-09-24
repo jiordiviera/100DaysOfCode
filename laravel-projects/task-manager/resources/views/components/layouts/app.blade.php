@@ -31,12 +31,13 @@
     <!-- Styles / Scripts -->
     @vite(["resources/css/app.css"])
     @livewireStyles
-      @fluxAppearance
+      @filamentStyles
   </head>
   <body
     class="font-sans antialiased min-h-screen !overflow-x-hidden flex flex-col bg-background text-foreground"
   >
     <livewire:partials.header />
+    @livewire('notifications')
 
     <main class="flex-1 w-full min-h-screen">
       {{ $slot }}
@@ -45,6 +46,7 @@
     <livewire:partials.footer />
 
     <!-- Scripts -->
+    @filamentScripts
     @livewireScripts
   @fluxScripts
   </body>

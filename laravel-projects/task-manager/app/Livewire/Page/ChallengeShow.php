@@ -2,11 +2,19 @@
 
 namespace App\Livewire\Page;
 
+use App\Mail\ChallengeInvitationMail;
 use App\Models\ChallengeInvitation;
 use App\Models\ChallengeRun;
 use App\Models\DailyLog;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Concerns\InteractsWithForms;
+use Filament\Forms\Contracts\HasForms;
+use Filament\Notifications\Notification;
+use Filament\Schemas\Schema;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Mail;
+use Throwable;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -14,11 +22,13 @@ use Livewire\Component;
 
 #[Title('Challenge')]
 #[Layout('components.layouts.app')]
-class ChallengeShow extends Component
+class ChallengeShow extends Component implements HasForms
 {
+    use InteractsWithForms;
+
     public ChallengeRun $run;
 
-    public string $inviteEmail = '';
+    public ?array $inviteForm = [];
 
     public ?string $lastInviteLink = null;
 
@@ -26,6 +36,8 @@ class ChallengeShow extends Component
     {
         $this->run = $run->load('participantLinks.user', 'owner');
         abort_unless($this->canView(), 403);
+
+        $this->form->fill();
     }
 
     protected function canView(): bool
@@ -35,57 +47,93 @@ class ChallengeShow extends Component
             return true;
         }
 
-        return $this->run->participantLinks->contains(fn ($p) => $p->user_id === $user->id);
+        return $this->run->participantLinks->contains(fn($p) => $p->user_id === $user->id);
     }
 
     public function sendInvite(): void
     {
         abort_unless(auth()->id() === $this->run->owner_id, 403);
 
-        $this->validate([
-            'inviteEmail' => 'required|email',
-        ]);
+        $data = $this->form->getState();
+        $email = strtolower($data['email'] ?? '');
+
+        if (!$email) {
+            $this->addError('inviteForm.email', 'Adresse e-mail requise.');
+
+            return;
+        }
 
         // Already participant?
-        $already = $this->run->participants()->where('email', $this->inviteEmail)->exists();
+        $already = $this->run->participants()->where('email', $email)->exists();
         if ($already) {
-            $this->addError('inviteEmail', 'Cet utilisateur participe déjà.');
+            $this->addError('inviteForm.email', 'Cet utilisateur participe déjà.');
 
             return;
         }
 
         // Existing pending invitation?
         $pending = ChallengeInvitation::where('challenge_run_id', $this->run->id)
-            ->where('email', $this->inviteEmail)
+            ->where('email', $email)
             ->whereNull('accepted_at')
             ->exists();
         if ($pending) {
-            $this->addError('inviteEmail', 'Invitation déjà envoyée.');
+            $this->addError('inviteForm.email', 'Invitation déjà envoyée.');
 
             return;
         }
 
-        $token = (string) Str::ulid();
+        $token = (string)Str::ulid();
         $inv = ChallengeInvitation::create([
             'challenge_run_id' => $this->run->id,
             'inviter_id' => auth()->id(),
-            'email' => strtolower($this->inviteEmail),
+            'email' => $email,
             'token' => $token,
             'expires_at' => now()->addDays(7),
         ]);
 
         $this->lastInviteLink = route('challenges.accept', ['token' => $token]);
-        $this->inviteEmail = '';
+        $this->form->fill();
+
+        try {
+            Mail::to($email)->send(new ChallengeInvitationMail($inv));
+        } catch (Throwable $exception) {
+            report($exception);
+
+            Notification::make()
+                ->title('E-mail non envoyé')
+                ->body('Le lien a été généré, mais l\'e-mail n\'a pas pu être envoyé automatiquement.')
+                ->warning()
+                ->send();
+        }
         session()->flash('message', 'Invitation créée. Partagez le lien de participation.');
+        Notification::make()
+            ->title('Invitation créée')
+            ->body('Un lien d\'invitation a été généré. Partagez-le avec la personne invitée.')
+            ->success()
+            ->send();
+    }
+
+    public function form(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                TextInput::make('email')
+                    ->label('Email')
+                    ->email()
+                    ->required()
+                    ->maxLength(255)
+                    ->helperText('Saisissez l\'adresse de la personne à inviter.'),
+            ])
+            ->statePath('inviteForm');
     }
 
     public function getProgressProperty(): array
     {
-        $target = max(1, (int) $this->run->target_days);
+        $target = max(1, (int)$this->run->target_days);
         $byUser = [];
         foreach ($this->run->participantLinks as $link) {
             $u = $link->user;
-            if (! $u) {
+            if (!$u) {
                 continue;
             }
             $done = DailyLog::where('challenge_run_id', $this->run->id)
@@ -107,7 +155,7 @@ class ChallengeShow extends Component
     {
         // Current streak counted from today's expected day number backwards
         $start = $this->run->start_date;
-        if (! $start) {
+        if (!$start) {
             return 0;
         }
         $todayDay = Carbon::now()->diffInDays(Carbon::parse($start)) + 1;
@@ -119,7 +167,7 @@ class ChallengeShow extends Component
         $doneSet = array_fill_keys($days, true);
         $streak = 0;
         for ($d = $todayDay; $d >= 1; $d--) {
-            if (! isset($doneSet[$d])) {
+            if (!isset($doneSet[$d])) {
                 break;
             }
             $streak++;
@@ -148,7 +196,7 @@ class ChallengeShow extends Component
         // Global progression
         $participantsCount = max(1, $this->run->participantLinks->count());
         $totalDone = DailyLog::where('challenge_run_id', $this->run->id)->count();
-        $globalPercent = round(min(100, ($totalDone / ($participantsCount * max(1, (int) $this->run->target_days))) * 100), 1);
+        $globalPercent = round(min(100, ($totalDone / ($participantsCount * max(1, (int)$this->run->target_days))) * 100), 1);
 
         // My done days set for calendar
         $myDoneDays = DailyLog::where('challenge_run_id', $this->run->id)
@@ -173,13 +221,18 @@ class ChallengeShow extends Component
         $link = $this->run->participantLinks()->whereKey($participantId)->firstOrFail();
         // Ne pas retirer l'owner par ce chemin
         if ($link->user_id === $this->run->owner_id) {
-            $this->addError('inviteEmail', "Vous ne pouvez pas retirer l'owner.");
+            $this->addError('inviteForm.email', "Vous ne pouvez pas retirer l'owner.");
 
             return;
         }
         $link->delete();
         $this->run->refresh()->load('participantLinks.user');
         session()->flash('message', 'Participant retiré.');
+        Notification::make()
+            ->title('Participant retiré')
+            ->body('L\'utilisateur a été retiré du challenge.')
+            ->warning()
+            ->send();
     }
 
     public function leave(): void
@@ -191,6 +244,24 @@ class ChallengeShow extends Component
         redirect()->route('challenges.index');
     }
 
+    public function copyLink(string $link): void
+    {
+        $this->js("
+        console.log(navigator);
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText('{$link}');
+            } else {
+                alert('La copie automatique n\'est pas supportée sur ce navigateur.');
+            }
+        ");
+
+        Notification::make()
+            ->title('Lien copié')
+            ->body('Le lien d\'invitation a été copié dans votre presse-papier. Partagez-le !')
+            ->success()
+            ->send();
+    }
+
     public function revokeInvite(string $inviteId): void
     {
         abort_unless(auth()->id() === $this->run->owner_id, 403);
@@ -200,7 +271,11 @@ class ChallengeShow extends Component
             ->first();
         if ($inv) {
             $inv->delete();
-            session()->flash('message', 'Invitation révoquée.');
+            Notification::make()
+                ->title('Invitation révoquée')
+                ->body('L\'invitation a été supprimée et le lien ne fonctionnera plus.')
+                ->warning()
+                ->send();
         }
         // refresh pending
         $this->run->refresh();

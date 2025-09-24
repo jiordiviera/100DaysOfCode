@@ -1,4 +1,4 @@
-<div class="max-w-5xl mx-auto py-8 space-y-6" xmlns:flux="http://www.w3.org/1999/html">
+<div class="max-w-5xl mx-auto py-8 space-y-6">
   <div class="bg-muted-foreground/20 shadow rounded-lg p-6">
     <div class="grid sm:grid-cols-3 gap-4 text-sm">
       <div>
@@ -30,11 +30,9 @@
         </p>
       </div>
       <div class="flex gap-2">
-        <x-ui.button
-          :link="true"
-          href="{{ route('daily-challenge') }}"
-          title="Journal du jour"
-        />
+        <x-filament::button tag="a" href="{{ route('daily-challenge') }}">
+          Journal du jour
+        </x-filament::button>
       </div>
     </div>
   </div>
@@ -66,12 +64,12 @@
                 ({{ $item["percent"] }}%)
               </span>
               @if (auth()->id() === $run->owner_id && $item["user"]->id !== $run->owner_id)
-                <x-ui.button
+                <x-filament::button
+                  color="danger"
                   wire:click="removeParticipant('{{ optional($run->participantLinks->firstWhere('user_id', $item['user']->id))->getKey() }}')"
-                  size="sm"
-                  variant="destructive"
-                  title="Retirer"
-                />
+                >
+                  Retirer
+                </x-filament::button>
               @endif
             </div>
           </div>
@@ -101,15 +99,16 @@
         wire:submit.prevent="sendInvite"
         class="flex gap-2 items-end flex-wrap"
       >
-          <div class="grow min-w-60">
-
-          <flux:input wire:model="inviteEmail" class="" type="email" placeholder="Email" />
-          </div>
-          <flux:button size="sm" type="submit" >Générer le lien</flux:button>
+        <div class="grow min-w-60">
+          {{ $this->form }}
+        </div>
+        <x-filament::button type="submit" color="primary">
+          Envoyer l'invitation
+        </x-filament::button>
       </form>
       @if ($lastInviteLink)
         <div class="text-sm">
-          Lien d'invitation:
+          Lien d'invitation (également envoyé par e-mail):
           <a class="text-primary underline" href="{{ $lastInviteLink }}">
             {{ $lastInviteLink }}
           </a>
@@ -123,18 +122,18 @@
             <li class="text-sm flex justify-between items-center">
               <span>{{ $inv->email }}</span>
               <span class="flex items-center gap-3">
-                <a
-                  class="text-primary underline"
-                  href="{{ route("challenges.accept", $inv->token) }}"
+                <x-filament::button
+                  wire:click="copyLink('{{ route('challenges.accept', $inv->token) }}')"
                 >
-                  Lien
-                </a>
-                <flux:button
-                  class="text-destructive hover:underline"
+                  Copier le lien
+                </x-filament::button>
+                <x-filament::button
+                  color="danger"
+                  wire:confirm="Voulez-vous vraiment révoquer cette invitation ?"
                   wire:click="revokeInvite('{{ $inv->getKey() }}')"
                 >
                   Révoquer
-                </flux:button>
+                </x-filament::button>
               </span>
             </li>
           @empty
@@ -151,12 +150,9 @@
     <div class="flex items-center justify-between mb-4">
       <h2 class="font-semibold">Mes derniers logs</h2>
       @if (auth()->id() !== $run->owner_id)
-        <x-ui.button
-          variant="outline"
-          size="sm"
-          wire:click="leave"
-          title="Quitter le challenge"
-        />
+        <x-filament::button color="gray" wire:click="leave">
+          Quitter le challenge
+        </x-filament::button>
       @endif
     </div>
     <ul class="space-y-1 text-sm">

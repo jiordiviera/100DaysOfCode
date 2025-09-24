@@ -45,7 +45,9 @@
         <span class="text-red-500 text-xs">{{ $message }}</span>
       @enderror
 
-      <x-ui.button type="submit" title="Créer le projet" />
+      <x-filament::button type="submit">
+        Créer le projet
+      </x-filament::button>
       @if ($activeRun)
         <p class="text-xs text-muted-foreground">
           Le projet sera rattaché au challenge
@@ -83,7 +85,9 @@
           <span class="text-red-500 text-xs">{{ $message }}</span>
         @enderror
       </div>
-      <x-ui.button type="submit" title="Créer la tâche" />
+      <x-filament::button type="submit">
+        Créer la tâche
+      </x-filament::button>
     </form>
   </div>
 
@@ -101,21 +105,25 @@
             </span>
           </div>
           <div class="flex gap-2">
-            <x-ui.button
-              link="true"
+            <x-filament::button
+              tag="a"
               href="{{ route('projects.tasks.index', ['project' => $project->id]) }}"
               class="text-sm text-nowrap"
-              title="Voir les tâches"
-            />
-            <x-ui.button
+              color="gray"
+            >
+              Voir les tâches
+            </x-filament::button>
+            <x-filament::button
               wire:click="editProject({{ $project->id }})"
-              title="Éditer"
-            />
-            <x-ui.button
+            >
+              Éditer
+            </x-filament::button>
+            <x-filament::button
               wire:click="deleteProject({{ $project->id }})"
-              variant="destructive"
-              title="Supprimer"
-            />
+              color="danger"
+            >
+              Supprimer
+            </x-filament::button>
           </div>
         </div>
         @if ($editProjectId === $project->id)
@@ -125,12 +133,16 @@
               name="editProjectName"
               wire:model="editProjectName"
             />
-            <x-ui.button type="submit" title="Valider" />
-            <x-ui.button
+            <x-filament::button type="submit">
+              Valider
+            </x-filament::button>
+            <x-filament::button
               type="button"
               wire:click="$set('editProjectId', null)"
-              title="Annuler"
-            />
+              color="gray"
+            >
+              Annuler
+            </x-filament::button>
             @error("editProjectName")
               <span class="text-red-500 text-xs">{{ $message }}</span>
             @enderror
@@ -161,15 +173,17 @@
               <span class="ml-2 text-xs text-gray-500">
                 par {{ $task->user->name ?? "N/A" }}
               </span>
-              <x-ui.button
+              <x-filament::button
                 wire:click="editTask({{ $task->id }})"
-                title="Éditer"
-              />
-              <x-ui.button
+              >
+                Éditer
+              </x-filament::button>
+              <x-filament::button
                 wire:click="deleteTask({{ $task->id }})"
-                title="Supprimer"
-                variant="destructive"
-              />
+                color="danger"
+              >
+                Supprimer
+              </x-filament::button>
               @if ($editTaskId === $task->id)
                 <form wire:submit.prevent="updateTask" class="flex gap-2 mt-2">
                   <x-ui.input
@@ -177,14 +191,18 @@
                     name="editTaskName"
                     wire:model="editTaskName"
                   />
-                  <x-ui.button size="sm" type="submit" title="Valider" />
-                  <x-ui.button
+                  <x-filament::button size="sm" type="submit">
+                    Valider
+                  </x-filament::button>
+                  <x-filament::button
                     size="sm"
                     type="button"
                     wire:click="$set('editTaskId', null)"
-                    variant="outline"
-                    title="Annuler"
-                  />
+                    color="gray"
+                    outlined
+                  >
+                    Annuler
+                  </x-filament::button>
                   @error("editTaskName")
                     <span class="text-red-500 text-xs">{{ $message }}</span>
                   @enderror

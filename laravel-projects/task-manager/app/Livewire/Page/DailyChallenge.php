@@ -5,26 +5,27 @@ namespace App\Livewire\Page;
 use App\Models\ChallengeRun;
 use App\Models\DailyLog;
 use App\Models\Project;
+use Filament\Forms\Components\CheckboxList;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Concerns\InteractsWithForms;
+use Filament\Forms\Contracts\HasForms;
+use Filament\Schemas\Schema;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Routing\Redirector;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 #[Layout('components.layouts.app')]
-class DailyChallenge extends Component
+class DailyChallenge extends Component implements HasForms
 {
-    public $challengeDate;
+    use InteractsWithForms;
 
-    public $description;
+    public string $challengeDate;
 
-    public $projectsWorkedOn = [];
-
-    public $hoursCoded = 1;
-
-    public $learnings;
-
-    public $challengesFaced;
+    public ?array $dailyForm = [];
 
     public $todayEntry;
 
@@ -37,41 +38,32 @@ class DailyChallenge extends Component
         $this->challengeDate = now()->format('Y-m-d');
         $this->allProjects = Project::query()
             ->where('user_id', auth()->id())
-            ->orWhereHas('members', fn($q) => $q->where('users.id', auth()->id()))
+            ->orWhereHas('members', fn ($q) => $q->where('users.id', auth()->id()))
             ->get();
+
         if ($redirect = $this->ensureChallengeRun()) {
             return $redirect;
         }
+
+        $this->form->fill([
+            'description' => '',
+            'projects_worked_on' => [],
+            'hours_coded' => 1,
+            'learnings' => null,
+            'challenges_faced' => null,
+        ]);
+
         $this->loadTodayEntry();
     }
 
-    protected function rules(): array
-    {
-        return [
-            'description' => 'required|min:10',
-            'hoursCoded' => 'required|numeric|min:0.25',
-            'projectsWorkedOn' => 'array',
-        ];
-    }
-
-    protected function getMessages(): array
-    {
-        return [
-            'description.required' => 'La description est obligatoire.',
-            'description.min' => 'La description '
-        ];
-    }
-
-    protected function ensureChallengeRun(): ?RedirectResponse
+    protected function ensureChallengeRun(): RedirectResponse | Redirector | null
     {
         $userId = auth()->id();
-        // Try to find latest active run owned by the user
         $run = ChallengeRun::where('owner_id', $userId)
             ->orderByDesc('id')
             ->first();
 
-        // If no run yet, redirect to challenges page to create one explicitly
-        if (!$run) {
+        if (! $run) {
             session()->flash('message', 'Créez votre challenge pour commencer votre journal quotidien.');
 
             return redirect()->route('challenges.index');
@@ -80,6 +72,39 @@ class DailyChallenge extends Component
         $this->challengeRunId = $run->id;
 
         return null;
+    }
+
+    public function form(Schema $schema): Schema
+    {
+        return $schema
+            ->statePath('dailyForm')
+            ->columns(2)
+            ->components([
+                Textarea::make('description')
+                    ->label('Description du jour')
+                    ->required()
+                    ->minLength(10)
+                    ->columnSpanFull(),
+                CheckboxList::make('projects_worked_on')
+                    ->label('Projets travaillés')
+                    ->options(fn () => $this->allProjects?->pluck('name', 'id')->mapWithKeys(fn ($label, $id) => [(string) $id => $label])->toArray() ?? [])
+                    ->columnSpanFull(),
+                TextInput::make('hours_coded')
+                    ->label('Heures codées')
+                    ->numeric()
+                    ->minValue(0.25)
+                    ->step(0.25)
+                    ->required()
+                    ->default(1),
+                Textarea::make('learnings')
+                    ->label('Apprentissages du jour')
+                    ->rows(3)
+                    ->columnSpanFull(),
+                Textarea::make('challenges_faced')
+                    ->label('Difficultés rencontrées')
+                    ->rows(3)
+                    ->columnSpanFull(),
+            ]);
     }
 
     public function loadTodayEntry(): void
@@ -94,25 +119,21 @@ class DailyChallenge extends Component
             ->where('day_number', $dayNumber)
             ->first();
 
-        if ($this->todayEntry) {
-            $this->description = $this->todayEntry->notes;
-            $this->projectsWorkedOn = $this->todayEntry->projects_worked_on ?? [];
-            $this->hoursCoded = $this->todayEntry->hours_coded ?? 1;
-            $this->learnings = $this->todayEntry->learnings;
-            $this->challengesFaced = $this->todayEntry->challenges_faced;
-        } else {
-            // Reset fields for a new entry
-            $this->description = '';
-            $this->projectsWorkedOn = [];
-            $this->hoursCoded = 1;
-            $this->learnings = null;
-            $this->challengesFaced = null;
-        }
+        $entry = $this->todayEntry;
+
+        $this->form->fill([
+            'description' => $entry?->notes ?? '',
+            'projects_worked_on' => collect($entry?->projects_worked_on ?? [])->map(fn ($id) => (string) $id)->all(),
+            'hours_coded' => $entry?->hours_coded ?? 1,
+            'learnings' => $entry?->learnings,
+            'challenges_faced' => $entry?->challenges_faced,
+        ]);
     }
 
     public function saveEntry(): void
     {
-        $this->validate();
+        $this->form->validate();
+        $data = $this->form->getState();
 
         $run = ChallengeRun::findOrFail($this->challengeRunId);
         $date = Carbon::parse($this->challengeDate);
@@ -126,14 +147,15 @@ class DailyChallenge extends Component
             ],
             [
                 'date' => $date->toDateString(),
-                'hours_coded' => $this->hoursCoded,
-                'projects_worked_on' => $this->projectsWorkedOn,
-                'notes' => $this->description,
-                'learnings' => $this->learnings,
-                'challenges_faced' => $this->challengesFaced,
+                'hours_coded' => isset($data['hours_coded']) ? (float) $data['hours_coded'] : 1,
+                'projects_worked_on' => collect($data['projects_worked_on'] ?? [])->map(fn ($id) => (int) $id)->all(),
+                'notes' => $data['description'] ?? '',
+                'learnings' => $data['learnings'] ?? null,
+                'challenges_faced' => $data['challenges_faced'] ?? null,
                 'completed' => true,
             ]
         );
+
         session()->flash('message', 'Entrée quotidienne sauvegardée !');
         $this->loadTodayEntry();
     }

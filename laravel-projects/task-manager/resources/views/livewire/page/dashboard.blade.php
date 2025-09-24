@@ -1,543 +1,199 @@
-<div class="min-h-screen">
-  <!-- En-tête du tableau de bord -->
-  <div class="shadow bg-muted">
-    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-      <h1 class="text-2xl font-semibold">
-        Tableau de bord
-      </h1>
-      <p class="mt-1 text-sm">
-        Bienvenue dans votre espace 100DaysOfCode
-      </p>
+@php
+  $active = $stats['active'] ?? null;
+  $projectCount = $stats['projectCount'] ?? 0;
+  $taskCount = $stats['taskCount'] ?? 0;
+  $completedTaskCount = $stats['completedTaskCount'] ?? 0;
+  $taskCompletionRate = $taskCount > 0 ? round(($completedTaskCount / max($taskCount, 1)) * 100) : 0;
+  $activeDayNumber = $active['dayNumber'] ?? null;
+  $targetDays = $active['targetDays'] ?? 100;
+  $daysLeft = $activeDayNumber ? max(0, $targetDays - $activeDayNumber) : null;
+  $taskCompletionDescription = $taskCount > 0 ? $taskCompletionRate . '% complétées' : 'Aucune tâche pour le moment';
+  $challengeDayValue = $activeDayNumber ? 'Jour ' . min($targetDays, $activeDayNumber) . '/' . $targetDays : 'Aucun challenge';
+  $challengeDayDescription = $daysLeft !== null ? $daysLeft . ' jours restants' : 'Rejoignez un challenge';
+@endphp
+
+<div class="mx-auto max-w-6xl space-y-6 py-6">
+  <x-filament::section
+    heading="Tableau de bord"
+    description="Bienvenue dans votre espace 100DaysOfCode."
+  >
+    <div class="flex flex-wrap gap-3">
+      <x-filament::button tag="a" href="{{ route('daily-challenge') }}">
+        Journal du jour
+      </x-filament::button>
+      <x-filament::button tag="a" href="{{ route('projects.index') }}" color="gray">
+        Gérer mes projets
+      </x-filament::button>
+      <x-filament::button tag="a" href="{{ route('challenges.index') }}" color="gray">
+        Challenges
+      </x-filament::button>
     </div>
+  </x-filament::section>
+
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <x-filament::card heading="Total Projets">
+      <div class="text-3xl font-semibold">{{ $projectCount }}</div>
+      <p class="text-sm text-muted-foreground">Projets suivis pendant le défi</p>
+    </x-filament::card>
+    <x-filament::card heading="Total Tâches">
+      <div class="text-3xl font-semibold">{{ $taskCount }}</div>
+      <p class="text-sm text-muted-foreground">Tâches planifiées</p>
+    </x-filament::card>
+    <x-filament::card heading="Tâches complétées">
+      <div class="text-3xl font-semibold">{{ $completedTaskCount }}</div>
+      <p class="text-sm text-muted-foreground">{{ $taskCompletionDescription }}</p>
+    </x-filament::card>
+    <x-filament::card heading="Jours du défi">
+      <div class="text-2xl font-semibold">{{ $challengeDayValue }}</div>
+      <p class="text-sm text-muted-foreground">{{ $challengeDayDescription }}</p>
+    </x-filament::card>
   </div>
 
-  <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-    <!-- Résumé / Statistiques -->
-    <div class="px-4 py-6 sm:px-0">
-      <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        <!-- Statistique 1: Nombre de projets -->
-        <div
-          class="bg-muted overflow-hidden shadow rounded-lg"
-        >
-          <div class="p-5">
-            <div class="flex items-center">
-              <div class="flex-shrink-0 bg-primary rounded-md p-3">
-                <svg
-                  class="h-6 w-6 text-foreground"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                  />
-                </svg>
-              </div>
-              <div class="ml-5 w-0 flex-1">
-                <dl>
-                  <dt
-                    class="text-sm font-medium text-foreground/80 truncate"
-                  >
-                    Total Projets
-                  </dt>
-                  <dd>
-                    <div
-                      class="text-lg font-medium "
-                    >
-                      {{ $stats["projectCount"] }}
-                    </div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-          <div class="bg-muted-foreground/20 px-5 py-3">
-            <div class="text-sm">
-              <a
-                href="{{ route("projects.index") }}"
-                class="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500"
-              >
-                Voir tous les projets
-              </a>
-            </div>
-          </div>
-        </div>
+  <x-filament::card heading="Progression du défi">
+    @if ($active)
+      @php
+        $run = $active['run'] ?? null;
+        $percent = (int) ($active['myPercent'] ?? 0);
+        $boundedPercent = max(0, min(100, $percent));
+      @endphp
 
-        <!-- Statistique 2: Nombre de tâches -->
-        <div
-          class="bg-muted overflow-hidden shadow rounded-lg"
-        >
-          <div class="p-5">
-            <div class="flex items-center">
-              <div class="flex-shrink-0 bg-green-500 rounded-md p-3">
-                <svg
-                  class="h-6 w-6 text-foreground"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
-                  />
-                </svg>
-              </div>
-              <div class="ml-5 w-0 flex-1">
-                <dl>
-                  <dt
-                    class="text-sm font-medium truncate"
-                  >
-                    Total Tâches
-                  </dt>
-                  <dd>
-                    <div
-                      class="text-lg font-medium text-foreground"
-                    >
-                      {{ $stats["taskCount"] }}
-                    </div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-          <div class="bg-muted-foreground/20 px-5 py-3">
-            <div class="text-sm">
-              <a
-                href="#tasks"
-                class="font-medium text-green-600 dark:text-green-400 hover:text-green-500"
-              >
-                Gérer mes tâches
-              </a>
-            </div>
-          </div>
-        </div>
-
-        <!-- Statistique 3: Tâches complétées -->
-        <div
-          class="bg-muted overflow-hidden shadow rounded-lg"
-        >
-          <div class="p-5">
-            <div class="flex items-center">
-              <div class="flex-shrink-0 bg-indigo-500 rounded-md p-3">
-                <svg
-                  class="h-6 w-6 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-              </div>
-              <div class="ml-5 w-0 flex-1">
-                <dl>
-                  <dt
-                    class="text-sm font-medium text-foreground truncate"
-                  >
-                    Tâches Complétées
-                  </dt>
-                  <dd>
-                    <div
-                      class="text-lg font-medium text-foreground"
-                    >
-                      {{ $stats["completedTaskCount"] }}
-                    </div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-          <div class="bg-muted-foreground/20 px-5 py-3">
-            <div class="text-sm">
-              <span class="font-medium text-indigo-600 dark:text-indigo-400">
-                @php
-                  $percentage = $stats["taskCount"] > 0 ? round(($stats["completedTaskCount"] / $stats["taskCount"]) * 100) : 0;
-                @endphp
-
-                {{ $percentage }}% complété
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Statistique 4: Jours du challenge actif -->
-        <div
-          class="bg-muted overflow-hidden shadow rounded-lg"
-        >
-          <div class="p-5">
-            <div class="flex items-center">
-              <div class="flex-shrink-0 bg-purple-500 rounded-md p-3">
-                <svg
-                  class="h-6 w-6 text-foreground"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
-              </div>
-              <div class="ml-5 w-0 flex-1">
-                <dl>
-                  <dt
-                    class="text-sm font-medium text-foreground truncate"
-                  >
-                    Jours du défi
-                  </dt>
-                  <dd>
-                    @php
-                      $active = $stats["active"] ?? null;
-                      $dayNumber = $active["dayNumber"] ?? null;
-                      $targetDays = $active["targetDays"] ?? 100;
-                    @endphp
-
-                    @if ($dayNumber)
-                      <div
-                        class="text-lg font-medium text-foreground"
-                      >
-                        Jour
-                        {{ min($targetDays, $dayNumber) }}/{{ $targetDays }}
-                      </div>
-                    @else
-                      <div class="text-sm text-foreground">
-                        Aucun challenge actif
-                      </div>
-                    @endif
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-          <div class="bg-muted-foreground/20 px-5 py-3">
-            <div class="text-sm">
-              @if (! empty($dayNumber))
-                @php
-                  $daysLeft = max(0, $targetDays - $dayNumber);
-                @endphp
-
-                <span class="font-medium text-purple-600 dark:text-purple-400">
-                  {{ $daysLeft }} jours restants
-                </span>
-              @else
-                <a
-                  href="{{ route("challenges.index") }}"
-                  class="font-medium text-purple-600 dark:text-purple-400 hover:underline"
-                >
-                  Créer ou rejoindre un challenge
-                </a>
+      <div class="space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p class="text-sm text-muted-foreground">
+              {{ $run?->title ?? 'Challenge actif' }}
+            </p>
+            <div class="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+              @if ($activeDayNumber)
+                <span>Jour {{ min($targetDays, $activeDayNumber) }}/{{ $targetDays }}</span>
+              @endif
+              @if ($daysLeft !== null)
+                <span>•</span>
+                <span>{{ $daysLeft }} jours restants</span>
               @endif
             </div>
           </div>
+          <x-filament::badge color="primary">
+            {{ $boundedPercent }}% accompli
+          </x-filament::badge>
         </div>
-      </div>
-    </div>
 
-    <!-- Barre de progression -->
-    <div class="px-4 py-2 sm:px-0">
-      <div class="bg-muted-foreground/20 overflow-hidden shadow rounded-lg">
-        <div class="p-5">
-          <h3
-            class="text-lg leading-6 font-medium text-foreground"
-          >
-            Progression du défi
-          </h3>
-          <div class="mt-3">
-            @php
-              $active = $stats["active"] ?? null;
-            @endphp
-
-            @if ($active)
-              <div class="relative pt-1">
-                <div class="flex mb-2 items-center justify-between">
-                  <div>
-                    <span
-                      class="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-primary bg-primary/10"
-                    >
-                      {{ $active["run"]->title ?? "Challenge actif" }}
-                    </span>
-                  </div>
-                  <div class="text-right">
-                    <span
-                      class="text-xs font-semibold inline-block text-primary"
-                    >
-                      {{ $active["myPercent"] }}%
-                    </span>
-                  </div>
-                </div>
-                <div
-                  class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-muted-foreground/20"
-                >
-                  <div
-                    style="width: {{ $active["myPercent"] }}%"
-                    class="shadow-none flex flex-col text-center whitespace-nowrap text-foreground justify-center bg-primary"
-                  ></div>
-                </div>
-                <a
-                  class="text-sm text-primary underline"
-                  href="{{ route("challenges.show", $active["run"]->id) }}"
-                >
-                  Voir le challenge
-                </a>
-              </div>
-            @else
-              <div class="text-sm text-gray-600 dark:text-gray-300">
-                Aucun challenge actif.
-                <a
-                  class="text-primary underline"
-                  href="{{ route("challenges.index") }}"
-                >
-                  Créer ou rejoindre
-                </a>
-              </div>
-            @endif
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Suivi quotidien du challenge 100 jours -->
-    <div class="px-4 py-6 sm:px-0">
-      @livewire("page.daily-challenge")
-    </div>
-
-    <!-- Section Projets récents -->
-    <div class="px-4 py-6 sm:px-0">
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xl font-semibold ">
-          Mes projets récents
-        </h2>
-        <a
-          href="{{ route("projects.index") }}"
-          class="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-foreground bg-primary"
-        >
-          Tous les projets
-        </a>
-      </div>
-
-      <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        @forelse ($recentProjects as $project)
+        <div class="h-3 w-full overflow-hidden rounded-full bg-muted">
           <div
-            class="bg-muted-foreground/20 overflow-hidden shadow rounded-lg border border-gray-200 dark:border-gray-700"
-          >
-            <div class="p-5">
-              <div class="flex items-center justify-between mb-3">
-                <h3
-                  class="text-lg font-medium truncate"
-                >
-                  {{ $project->name }}
-                </h3>
-                <span
-                  class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                >
-                  {{ $project->tasks->count() }} tâches
-                </span>
-              </div>
-              <p
-                class="text-sm text-gray-600 dark:text-gray-300 mb-4 line-clamp-2"
-              >
-                {{ $project->description ?? "Aucune description disponible pour ce projet." }}
-              </p>
-              <div
-                class="flex items-center text-sm text-gray-500 dark:text-gray-400"
-              >
-                <svg
-                  class="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400 dark:text-gray-500"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
-                Créé le {{ $project->created_at->format("d/m/Y") }}
-              </div>
+            class="h-full rounded-full bg-primary transition-all"
+            style="width: {{ $boundedPercent }}%"
+          ></div>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+          @if ($run)
+            <x-filament::button tag="a" href="{{ route('challenges.show', $run->id) }}">
+              Voir le challenge
+            </x-filament::button>
+          @endif
+          <x-filament::button tag="a" href="{{ route('daily-challenge') }}" color="gray">
+            Renseigner ma journée
+          </x-filament::button>
+        </div>
+      </div>
+    @else
+      <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <p class="text-sm text-muted-foreground">
+          Aucun challenge actif. Lancez-vous pour suivre vos progrès jour après jour.
+        </p>
+        <x-filament::button tag="a" href="{{ route('challenges.index') }}">
+          Créer ou rejoindre un challenge
+        </x-filament::button>
+      </div>
+    @endif
+  </x-filament::card>
+
+  <x-filament::section
+    heading="Suivi quotidien"
+    description="Complétez votre entrée de la journée pour garder votre dynamique."
+  >
+    @livewire("page.daily-challenge")
+  </x-filament::section>
+
+  <x-filament::section>
+    <div class="flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <h2 class="text-lg font-semibold">Mes projets récents</h2>
+        <p class="text-sm text-muted-foreground">Les projets sur lesquels vous avez travaillé dernièrement.</p>
+      </div>
+      <x-filament::button tag="a" href="{{ route('projects.index') }}" color="gray">
+        Tous les projets
+      </x-filament::button>
+    </div>
+
+    <div class="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      @forelse ($recentProjects as $project)
+        <x-filament::card :heading="$project->name">
+          <x-slot name="description">
+            {{ $project->description ?? 'Aucune description disponible pour ce projet.' }}
+          </x-slot>
+
+          <div class="space-y-3 text-sm">
+            <x-filament::badge color="primary">
+              {{ $project->tasks->count() }} tâches
+            </x-filament::badge>
+            <div class="text-xs text-muted-foreground">
+              Créé le {{ $project->created_at->format('d/m/Y') }}
             </div>
-            <div
-              class="bg-gray-50 dark:bg-gray-700 px-5 py-3 flex justify-between"
-            >
-              <a
-                href="#"
-                class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500"
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <x-filament::button
+                tag="a"
+                href="{{ route('projects.tasks.index', ['project' => $project->id]) }}"
+                size="sm"
+                color="gray"
               >
                 Voir détails
-              </a>
-              <a
-                href="#"
-                class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-500"
-              >
-                {{ $project->tasks->where("is_completed", true)->count() }}/{{ $project->tasks->count() }}
-                complétées
-              </a>
+              </x-filament::button>
+              <x-filament::badge color="success">
+                {{ $project->tasks->where('is_completed', true)->count() }}/{{ $project->tasks->count() }} complétées
+              </x-filament::badge>
             </div>
           </div>
-        @empty
-          <div
-            class="col-span-full bg-muted-foreground/20 overflow-hidden shadow rounded-lg border-border"
-          >
-            <div class="p-8 text-center">
-              <svg
-                class="mx-auto h-12 w-12 text-muted-foreground"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                />
-              </svg>
-              <h3
-                class="mt-2 text-lg font-medium"
-              >
-                Aucun projet
-              </h3>
-              <p class="mt-1 text-sm">
-                Commencez par créer votre premier projet pour le défi
-                100DaysOfCode.
-              </p>
-              <div class="mt-6">
-                <a
-                  href="{{ route("projects.index") }}"
-                  class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-foreground bg-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary/80"
-                >
-                  Créer un projet
-                </a>
-              </div>
-            </div>
+        </x-filament::card>
+      @empty
+        <x-filament::card heading="Aucun projet">
+          <x-slot name="description">
+            Commencez par créer votre premier projet pour le défi 100DaysOfCode.
+          </x-slot>
+
+          <x-filament::button tag="a" href="{{ route('projects.index') }}">
+            Créer un projet
+          </x-filament::button>
+        </x-filament::card>
+      @endforelse
+    </div>
+  </x-filament::section>
+
+  <x-filament::card id="tasks" heading="Mes tâches récentes">
+    <div class="space-y-4">
+      @forelse ($recentTasks as $task)
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h3 class="text-sm font-medium">{{ $task->title }}</h3>
+            <p class="text-xs text-muted-foreground">
+              Projet : {{ $task->project->name }}
+            </p>
           </div>
-        @endforelse
-      </div>
+          <x-filament::badge :color="$task->is_completed ? 'success' : 'gray'">
+            {{ $task->is_completed ? 'Terminée' : 'À faire' }}
+          </x-filament::badge>
+        </div>
+      @empty
+        <p class="py-4 text-center text-sm text-muted-foreground">
+          Vous n'avez pas encore créé de tâches pour vos projets.
+        </p>
+      @endforelse
     </div>
 
-    <!-- Section Tâches récentes -->
-    <div class="px-4 py-6 sm:px-0" id="tasks">
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xl font-semibold ">
-          Mes tâches récentes
-        </h2>
-        <a
-          href="#"
-          class="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
-        >
-          Toutes les tâches
-        </a>
-      </div>
-
-      <div class="bg-muted-foreground/20 overflow-hidden shadow rounded-lg">
-        <ul class="divide-y divide-gray-200 dark:divide-gray-700">
-          @forelse ($recentTasks as $task)
-            <li class="px-6 py-4 flex items-center">
-              <div class="min-w-0 flex-1 flex items-center">
-                <div class="flex-shrink-0">
-                  @if ($task->is_completed)
-                    <span
-                      class="h-8 w-8 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center"
-                    >
-                      <svg
-                        class="h-5 w-5 text-green-600 dark:text-green-300"
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          fill-rule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                          clip-rule="evenodd"
-                        />
-                      </svg>
-                    </span>
-                  @else
-                    <span
-                      class="h-8 w-8 rounded-full bg-muted-foreground/70 flex items-center justify-center"
-                    >
-                      <svg
-                        class="h-5 w-5 bg-muted"
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          fill-rule="evenodd"
-                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
-                          clip-rule="evenodd"
-                        />
-                      </svg>
-                    </span>
-                  @endif
-                </div>
-                <div class="min-w-0 flex-1 px-4">
-                  <div>
-                    <h4
-                      class="text-sm font-medium truncate"
-                    >
-                      {{ $task->title }}
-                    </h4>
-                    <p class="text-sm">
-                      Projet: {{ $task->project->name }}
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <button
-                  type="button"
-                  class="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-indigo-700 bg-indigo-100 hover:bg-indigo-200 dark:bg-indigo-900 dark:text-indigo-200 dark:hover:bg-indigo-800 focus:outline-none"
-                >
-                  {{ $task->is_completed ? "Terminée" : "À faire" }}
-                </button>
-              </div>
-            </li>
-          @empty
-            <li class="px-6 py-8 text-center">
-              <svg
-                class="mx-auto h-12 w-12 text-gray-400"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
-                />
-              </svg>
-              <h3
-                class="mt-2 text-lg font-medium text-gray-900 dark:text-white"
-              >
-                Aucune tâche
-              </h3>
-              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                Vous n'avez pas encore créé de tâches pour vos projets.
-              </p>
-            </li>
-          @endforelse
-        </ul>
-      </div>
+    <div class="mt-4">
+      <x-filament::button tag="a" href="#" color="gray">
+        Toutes les tâches
+      </x-filament::button>
     </div>
-  </div>
+  </x-filament::card>
 </div>

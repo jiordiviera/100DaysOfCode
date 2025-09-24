@@ -6,22 +6,25 @@
       <h1 class="block text-2xl font-bold">Connexion</h1>
       <p class="mt-2 text-sm text-muted-foreground">
         Pas encore de compte ?
-        <x-ui.button
-          :link="true"
-          variant="link"
-          size="sm"
+        <x-filament::link
           href="{{ route('register') }}"
           wire:navigate
-          title="Créer un compte"
-        />
+        >
+          Créer un compte
+        </x-filament::link>
       </p>
     </div>
 
     <div class="mt-6">
-      <x-ui.button class="w-full justify-center" variant="outline" disabled>
+      <x-filament::button
+        class="w-full justify-center"
+        color="gray"
+        outlined
+        disabled
+      >
         @include("components.ui.icons.github")
         <span>Continuer avec GitHub (bientôt)</span>
-      </x-ui.button>
+      </x-filament::button>
     </div>
 
     <div
@@ -75,7 +78,9 @@
           </span>
         </div>
 
-        <x-ui.button class="w-full" type="submit" title="Se connecter" />
+        <x-filament::button class="w-full" type="submit">
+          Se connecter
+        </x-filament::button>
       </form>
     </div>
   </div>

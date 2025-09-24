@@ -31,7 +31,7 @@ class Dashboard extends Component
         $active = null;
         if ($activeRun) {
             $target = max(1, (int) $activeRun->target_days);
-            $dayNumber = max(1, Carbon::now()->diffInDays(Carbon::parse($activeRun->start_date)) + 1);
+            $dayNumber = round(max(1, Carbon::parse($activeRun->start_date)->diffInDays(Carbon::now()) + 1));
             $myDone = DailyLog::where('challenge_run_id', $activeRun->id)->where('user_id', $user->id)->count();
             $myPercent = round(min(100, ($myDone / $target) * 100));
             $active = [

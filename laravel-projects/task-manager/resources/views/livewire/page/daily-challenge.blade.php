@@ -1,69 +1,70 @@
-<div class="shadow rounded-lg p-6 bg-muted-foreground/20">
-    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-        Progression du jour ({{ $challengeDate }})
-    </h3>
-
-    @if (session()->has("message"))
-        <div
-            class="mb-4 p-3 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded"
-        >
-            {{ session("message") }}
+<x-filament::card
+    heading="Progression du jour ({{ $challengeDate }})"
+    description="Complétez votre journal pour garder votre rythme."
+>
+    @if (session()->has('message'))
+        <div class="mb-4 rounded-md bg-green-100 px-3 py-2 text-sm text-green-800 dark:bg-green-900/60 dark:text-green-200">
+            {{ session('message') }}
         </div>
     @endif
 
     @if ($todayEntry && $todayEntry->completed)
-        <div
-            class="mb-4 p-3 bg-primary/80  rounded"
-        >
-            <strong>Entrée du jour déjà complétée !</strong>
-            <br/>
-            <span class="block mt-2">Description : {{ $todayEntry->notes }}</span>
-            <span class="block mt-2">
-        Projets travaillés :
-        @if (! empty($todayEntry->projects_worked_on))
-                    @foreach ($todayEntry->projects_worked_on as $pid)
-                        @php
-                            $p = $allProjects->find($pid);
-                        @endphp
+        <div class="space-y-4">
+            <x-filament::badge color="success">
+                Entrée du jour déjà complétée !
+            </x-filament::badge>
 
-                        @if ($p)
-                            <span
-                                class="inline-block px-2 py-1 bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 rounded mr-1"
-                            >
-                {{ $p->name }}
-              </span>
+            <dl class="space-y-3 text-sm">
+                <div>
+                    <dt class="text-xs uppercase text-muted-foreground">Description</dt>
+                    <dd class="mt-1 whitespace-pre-line rounded-md bg-muted px-3 py-2 font-mono text-sm">
+                        {{ $todayEntry->notes }}
+                    </dd>
+                </div>
+
+                <div>
+                    <dt class="text-xs uppercase text-muted-foreground">Projets travaillés</dt>
+                    <dd class="mt-1 flex flex-wrap gap-2">
+                        @php($projects = collect($todayEntry->projects_worked_on ?? []))
+
+                        @if ($projects->isNotEmpty())
+                            @foreach ($projects as $pid)
+                                @php($project = $allProjects->find($pid))
+                                @if ($project)
+                                    <x-filament::badge color="gray">
+                                        {{ $project->name }}
+                                    </x-filament::badge>
+                                @endif
+                            @endforeach
+                        @else
+                            <span class="text-muted-foreground">Aucun</span>
                         @endif
-                    @endforeach
-                @else
-                    Aucun
-                @endif
-      </span>
-            <span class="block mt-2">
-        Heures codées : {{ $todayEntry->hours_coded }}
-      </span>
-            <span class="block mt-2">
-        Apprentissages : {{ $todayEntry->learnings }}
-      </span>
-            <span class="block mt-2">
-        Difficultés : {{ $todayEntry->challenges_faced }}
-      </span>
+                    </dd>
+                </div>
+
+                <div class="grid gap-3 md:grid-cols-3">
+                    <div class="rounded-md bg-muted px-3 py-2">
+                        <p class="text-xs uppercase text-muted-foreground">Heures codées</p>
+                        <p class="text-base font-semibold">{{ $todayEntry->hours_coded }}</p>
+                    </div>
+                    <div class="rounded-md bg-muted px-3 py-2">
+                        <p class="text-xs uppercase text-muted-foreground">Apprentissages</p>
+                        <p class="text-sm">{{ $todayEntry->learnings ?: '—' }}</p>
+                    </div>
+                    <div class="rounded-md bg-muted px-3 py-2">
+                        <p class="text-xs uppercase text-muted-foreground">Difficultés</p>
+                        <p class="text-sm">{{ $todayEntry->challenges_faced ?: '—' }}</p>
+                    </div>
+                </div>
+            </dl>
         </div>
     @else
         <form wire:submit.prevent="saveEntry" class="space-y-4">
+            {{ $this->form }}
 
-{{--            <x-ui.input type="textarea" rows="3" label="Description du jour" wire:model.defer="description" name="description"/>--}}
-            <flux:textarea label="Description du jour" wire:model.defer="description" />
-            <flux:select wire:model="projectsWorkedOn" label="Projets travaillés"  multiple="true">
-                @foreach ($allProjects as $project)--}}
-                <flux:select.option value="{{ $project->id }}">{{ $project->name }}</flux:select.option>
-                @endforeach
-            </flux:select>
-
-            <flux:input type="number" label="Heures codées" min="0.25" step="0.25" wire:model.defer="hoursCoded" name="hoursCoded"/>
-
-            <flux:textarea label="Apprentissages du jour" wire:model.defer="learnings" name="learnings"/>
-            <flux:textarea label="Difficultés rencontrées" wire:model.defer="challengesFaced" name="challengesFaced"/>
-            <flux:button type="submit" variant="primary">Sauvegarder ma progression</flux:button>
+            <x-filament::button type="submit" color="primary">
+                Sauvegarder ma progression
+            </x-filament::button>
         </form>
     @endif
-</div>
+</x-filament::card>
