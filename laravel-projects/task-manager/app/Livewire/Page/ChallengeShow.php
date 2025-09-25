@@ -6,6 +6,7 @@ use App\Mail\ChallengeInvitationMail;
 use App\Models\ChallengeInvitation;
 use App\Models\ChallengeRun;
 use App\Models\DailyLog;
+use App\Models\User;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
@@ -57,8 +58,15 @@ class ChallengeShow extends Component implements HasForms
         $data = $this->form->getState();
         $email = strtolower($data['email'] ?? '');
 
-        if (!$email) {
+        if (! $email) {
             $this->addError('inviteForm.email', 'Adresse e-mail requise.');
+
+            Notification::make()
+                ->title('Email manquant')
+                ->body('Indiquez l\'adresse e-mail de la personne à inviter.')
+                ->warning()
+                ->persistent()
+                ->send();
 
             return;
         }
@@ -67,6 +75,28 @@ class ChallengeShow extends Component implements HasForms
         $already = $this->run->participants()->where('email', $email)->exists();
         if ($already) {
             $this->addError('inviteForm.email', 'Cet utilisateur participe déjà.');
+
+            Notification::make()
+                ->title('Déjà participant')
+                ->body('Cette personne fait déjà partie du challenge.')
+                ->warning()
+                ->persistent()
+                ->send();
+
+            return;
+        }
+
+        // Already engaged in another active challenge?
+        $existingUser = User::where('email', $email)->first();
+        if ($existingUser && $this->userHasActiveChallenge($existingUser->id)) {
+            $this->addError('inviteForm.email', 'Cette personne participe déjà à un challenge actif.');
+
+            Notification::make()
+                ->title('Invitation impossible')
+                ->body('Cette personne mène déjà un challenge actif et ne peut pas en rejoindre un nouveau pour le moment.')
+                ->warning()
+                ->persistent()
+                ->send();
 
             return;
         }
@@ -78,6 +108,13 @@ class ChallengeShow extends Component implements HasForms
             ->exists();
         if ($pending) {
             $this->addError('inviteForm.email', 'Invitation déjà envoyée.');
+
+            Notification::make()
+                ->title('Invitation déjà envoyée')
+                ->body('Une invitation en attente existe déjà pour cette adresse e-mail.')
+                ->warning()
+                ->persistent()
+                ->send();
 
             return;
         }
@@ -125,6 +162,23 @@ class ChallengeShow extends Component implements HasForms
                     ->helperText('Saisissez l\'adresse de la personne à inviter.'),
             ])
             ->statePath('inviteForm');
+    }
+
+    protected function userHasActiveChallenge(string $userId): bool
+    {
+        $ownsActive = ChallengeRun::query()
+            ->where('owner_id', $userId)
+            ->where('status', 'active')
+            ->exists();
+
+        if ($ownsActive) {
+            return true;
+        }
+
+        return ChallengeRun::query()
+            ->where('status', 'active')
+            ->whereHas('participantLinks', fn ($relation) => $relation->where('user_id', $userId))
+            ->exists();
     }
 
     public function getProgressProperty(): array

@@ -64,7 +64,7 @@ class Dashboard extends Component
             })
             ->latest('start_date')
             ->first();
-
+//        dd($activeRun);
         $query = $user->projects()->with(['tasks'])->latest();
         if ($activeRun) {
             $query->where('challenge_run_id', $activeRun->id);
@@ -87,6 +87,7 @@ class Dashboard extends Component
         $stats = $this->getUserStats();
         $recentProjects = $this->getRecentProjects();
         $recentTasks = $this->getRecentTasks();
+//        dd($recentProjects);
 
         return view('livewire.page.dashboard', [
             'stats' => $stats,

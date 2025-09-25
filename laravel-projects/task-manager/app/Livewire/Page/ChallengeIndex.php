@@ -8,6 +8,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
+use Filament\Notifications\Notification;
 use Filament\Schemas\Schema;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
@@ -22,6 +23,8 @@ class ChallengeIndex extends Component implements HasForms
 
     public ?array $challengeForm = [];
 
+    public bool $hasActiveChallenge = false;
+
     public function mount(): void
     {
         $this->form->fill([
@@ -30,6 +33,8 @@ class ChallengeIndex extends Component implements HasForms
             'target_days' => 100,
             'is_public' => false,
         ]);
+
+        $this->refreshEligibility();
     }
 
     public function form(Schema $schema): Schema
@@ -62,8 +67,21 @@ class ChallengeIndex extends Component implements HasForms
             ]);
     }
 
-    public function create(): void
+    public function create()
     {
+        if ($this->ownerHasActiveChallenge()) {
+            $this->hasActiveChallenge = true;
+
+            Notification::make()
+                ->title('Challenge déjà en cours')
+                ->body('Terminez votre challenge actuel avant d\'en démarrer un nouveau.')
+                ->warning()
+                ->persistent()
+                ->send();
+
+            return;
+        }
+
         $this->form->validate();
         $data = $this->form->getState();
 
@@ -88,11 +106,22 @@ class ChallengeIndex extends Component implements HasForms
             'is_public' => false,
         ]);
 
-        redirect()->route('challenges.show', ['run' => $run->id]);
+        $this->hasActiveChallenge = true;
+
+        Notification::make()
+            ->title('Challenge lancé !')
+            ->body('Bon courage pour ces ' . $run->target_days . ' prochains jours.')
+            ->success()
+            ->persistent()
+            ->send();
+
+        return redirect()->route('challenges.show', ['run' => $run->id]);
     }
 
     public function render(): View
     {
+        $this->refreshEligibility();
+
         $user = auth()->user();
         $owned = $user->challengeRunsOwned()->latest()->get();
         $joined = $user->challengeRuns()->whereNotIn('challenge_runs.id', $owned->pluck('id'))->latest()->get();
@@ -100,6 +129,20 @@ class ChallengeIndex extends Component implements HasForms
         return view('livewire.page.challenge-index', [
             'owned' => $owned,
             'joined' => $joined,
+            'hasActiveChallenge' => $this->hasActiveChallenge,
         ]);
+    }
+
+    protected function ownerHasActiveChallenge(): bool
+    {
+        return ChallengeRun::query()
+            ->where('owner_id', auth()->id())
+            ->where('status', 'active')
+            ->exists();
+    }
+
+    protected function refreshEligibility(): void
+    {
+        $this->hasActiveChallenge = $this->ownerHasActiveChallenge();
     }
 }

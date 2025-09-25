@@ -10,7 +10,13 @@
         <form wire:submit.prevent="create" class="space-y-4">
             {{ $this->form }}
 
-            <x-filament::button type="submit" color="primary">
+            @if ($hasActiveChallenge)
+                <p class="text-sm text-muted-foreground">
+                    Terminez votre challenge actuel avant d'en démarrer un nouveau.
+                </p>
+            @endif
+
+            <x-filament::button type="submit" color="primary" :disabled="$hasActiveChallenge">
                 Créer
             </x-filament::button>
         </form>
