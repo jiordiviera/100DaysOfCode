@@ -112,7 +112,7 @@
     heading="Suivi quotidien"
     description="Complétez votre entrée de la journée pour garder votre dynamique."
   >
-    @livewire("page.daily-challenge")
+      <livewire:page.daily-challenge />
   </x-filament::section>
 
   <x-filament::section>
