@@ -30,6 +30,5 @@ class AppServiceProvider extends ServiceProvider
             'warning' => Color::Amber,
         ]);
 
-
     }
 }

@@ -13,8 +13,6 @@ use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Schema;
 use Illuminate\Contracts\View\View;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Routing\Redirector;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -39,7 +37,7 @@ class DailyChallenge extends Component implements HasForms
         $this->challengeDate = now()->format('Y-m-d');
         $this->allProjects = Project::query()
             ->where('user_id', auth()->id())
-            ->orWhereHas('members', fn($q) => $q->where('users.id', auth()->id()))
+            ->orWhereHas('members', fn ($q) => $q->where('users.id', auth()->id()))
             ->get();
 
         $this->ensureChallengeRun();
@@ -50,9 +48,9 @@ class DailyChallenge extends Component implements HasForms
             'learnings' => null,
             'challenges_faced' => null,
         ]);
-//        dd(1);
+        //        dd(1);
         $this->loadTodayEntry();
-//        dd(1);
+        //        dd(1);
     }
 
     protected function ensureChallengeRun()
@@ -61,14 +59,15 @@ class DailyChallenge extends Component implements HasForms
         $run = ChallengeRun::where('owner_id', $userId)
             ->orderByDesc('id')
             ->first();
-//        dd($run);
+        //        dd($run);
 
-        if (!$run) {
-//            session()->flash('message', 'Créez votre challenge pour commencer votre journal quotidien.');
+        if (! $run) {
+            //            session()->flash('message', 'Créez votre challenge pour commencer votre journal quotidien.');
             Notification::make()
                 ->title('Créez votre challenge pour commencer votre journal quotidien.')
                 ->warning()
                 ->send();
+
             return;
         }
 
@@ -90,7 +89,7 @@ class DailyChallenge extends Component implements HasForms
                     ->columnSpanFull(),
                 CheckboxList::make('projects_worked_on')
                     ->label('Projets travaillés')
-                    ->options(fn() => $this->allProjects?->pluck('name', 'id')->mapWithKeys(fn($label, $id) => [(string)$id => $label])->toArray() ?? [])
+                    ->options(fn () => $this->allProjects?->pluck('name', 'id')->mapWithKeys(fn ($label, $id) => [(string) $id => $label])->toArray() ?? [])
                     ->columnSpanFull(),
                 TextInput::make('hours_coded')
                     ->label('Heures codées')
@@ -113,7 +112,9 @@ class DailyChallenge extends Component implements HasForms
     public function loadTodayEntry(): void
     {
         $run = ChallengeRun::find($this->challengeRunId);
-        if(!$run) return;
+        if (! $run) {
+            return;
+        }
         $date = Carbon::parse($this->challengeDate);
         $start = Carbon::parse($run->start_date);
         $dayNumber = $start->diffInDays($date) + 1;
@@ -127,7 +128,7 @@ class DailyChallenge extends Component implements HasForms
 
         $this->form->fill([
             'description' => $entry?->notes ?? '',
-            'projects_worked_on' => collect($entry?->projects_worked_on ?? [])->map(fn($id) => (string)$id)->all(),
+            'projects_worked_on' => collect($entry?->projects_worked_on ?? [])->map(fn ($id) => (string) $id)->all(),
             'hours_coded' => $entry?->hours_coded ?? 1,
             'learnings' => $entry?->learnings,
             'challenges_faced' => $entry?->challenges_faced,
@@ -151,8 +152,8 @@ class DailyChallenge extends Component implements HasForms
             ],
             [
                 'date' => $date->toDateString(),
-                'hours_coded' => isset($data['hours_coded']) ? (float)$data['hours_coded'] : 1,
-                'projects_worked_on' => collect($data['projects_worked_on'] ?? [])->map(fn($id) => (string)$id)->all(),
+                'hours_coded' => isset($data['hours_coded']) ? (float) $data['hours_coded'] : 1,
+                'projects_worked_on' => collect($data['projects_worked_on'] ?? [])->map(fn ($id) => (string) $id)->all(),
                 'notes' => $data['description'] ?? '',
                 'learnings' => $data['learnings'] ?? null,
                 'challenges_faced' => $data['challenges_faced'] ?? null,

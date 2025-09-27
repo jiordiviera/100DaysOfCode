@@ -110,7 +110,7 @@ class ChallengeIndex extends Component implements HasForms
 
         Notification::make()
             ->title('Challenge lancé !')
-            ->body('Bon courage pour ces ' . $run->target_days . ' prochains jours.')
+            ->body('Bon courage pour ces '.$run->target_days.' prochains jours.')
             ->success()
             ->persistent()
             ->send();

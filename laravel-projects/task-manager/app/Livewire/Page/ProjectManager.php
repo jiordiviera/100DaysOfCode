@@ -27,8 +27,26 @@ class ProjectManager extends Component
 
     public ?string $activeRunId = null;
 
+    public ?string $feedbackMessage = null;
+
+    public string $feedbackType = 'success';
+
+    protected function setFeedback(string $type, string $message): void
+    {
+        $this->feedbackType = $type;
+        $this->feedbackMessage = $message;
+    }
+
     public function createProject(): void
     {
+        $this->resolveActiveRun();
+
+        if (! $this->activeRunId) {
+            $this->setFeedback('error', "Vous devez d'abord rejoindre ou créer un challenge actif avant d'ajouter un projet.");
+
+            return;
+        }
+
         $this->validate([
             'projectName' => 'required|string|max:255',
         ]);
@@ -38,31 +56,56 @@ class ProjectManager extends Component
             'challenge_run_id' => $this->activeRunId,
         ]);
         $this->projectName = '';
+
+        $this->resetErrorBag();
+        $this->setFeedback('success', 'Projet créé avec succès.');
     }
 
     public function createTask(): void
     {
+        $this->resolveActiveRun();
+
+        if (! $this->activeRunId) {
+            $this->setFeedback('error', "Vous devez d'abord rejoindre ou créer un challenge actif avant d'ajouter une tâche.");
+
+            return;
+        }
+
         $this->validate([
             'taskName' => 'required|string|max:255',
             'taskProjectId' => 'required|exists:projects,id',
         ]);
+        $project = Project::query()
+            ->whereKey($this->taskProjectId)
+            ->where('challenge_run_id', $this->activeRunId)
+            ->first();
+
+        if (! $project) {
+            $this->addError('taskProjectId', 'Sélectionnez un projet lié à votre challenge actif.');
+
+            return;
+        }
+
         Task::create([
             'title' => $this->taskName,
-            'project_id' => $this->taskProjectId,
+            'project_id' => $project->id,
             'user_id' => auth()->id(),
         ]);
         $this->taskName = '';
         $this->taskProjectId = '';
+
+        $this->resetErrorBag();
+        $this->setFeedback('success', 'Tâche créée avec succès.');
     }
 
-    public function editProject($id)
+    public function editProject($id): void
     {
         $project = Project::findOrFail($id);
         $this->editProjectId = $project->id;
         $this->editProjectName = $project->name;
     }
 
-    public function updateProject()
+    public function updateProject(): void
     {
         $this->validate([
             'editProjectName' => 'required|string|max:255',
@@ -73,12 +116,12 @@ class ProjectManager extends Component
         $this->editProjectName = '';
     }
 
-    public function deleteProject($id)
+    public function deleteProject($id): void
     {
         Project::findOrFail($id)->delete();
     }
 
-    public function editTask($id)
+    public function editTask($id): void
     {
         $task = Task::findOrFail($id);
         $this->editTaskId = $task->id;
@@ -86,7 +129,7 @@ class ProjectManager extends Component
         $this->taskProjectId = $task->project_id;
     }
 
-    public function updateTask()
+    public function updateTask(): void
     {
         $this->validate([
             'editTaskName' => 'required|string|max:255',
@@ -98,7 +141,7 @@ class ProjectManager extends Component
         $this->taskProjectId = '';
     }
 
-    public function deleteTask($id)
+    public function deleteTask($id): void
     {
         Task::findOrFail($id)->delete();
     }

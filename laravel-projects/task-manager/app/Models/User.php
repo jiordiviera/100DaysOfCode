@@ -55,7 +55,7 @@ class User extends Authenticatable
     }
 
     // Projets où l'utilisateur est membre
-    public function memberProjects()
+    public function memberProjects(): BelongsToMany
     {
         return $this->belongsToMany(Project::class, 'project_user')->withTimestamps();
     }

@@ -5,8 +5,8 @@
         </div>
     @endif
 
-    <div class="bg-muted-foreground/20 shadow rounded-lg p-6">
-        <h2 class="text-lg font-semibold mb-4">Créer un challenge</h2>
+        <x-filament::section >
+            <x-slot name="heading">Créer un challenge</x-slot>
         <form wire:submit.prevent="create" class="space-y-4">
             {{ $this->form }}
 
@@ -20,11 +20,11 @@
                 Créer
             </x-filament::button>
         </form>
-    </div>
+        </x-filament::section>
 
     <div class="grid md:grid-cols-2 gap-6">
-        <div class="bg-muted-foreground/20 shadow rounded-lg p-6">
-            <h3 class="font-semibold mb-3">Mes challenges</h3>
+        <x-filament::section >
+            <x-slot name="heading">Mes challenges</x-slot>
             <ul class="space-y-2">
                 @forelse ($owned as $run)
                     <li class="flex justify-between items-center">
@@ -45,10 +45,10 @@
                     <li class="text-sm text-muted-foreground">Aucun challenge créé.</li>
                 @endforelse
             </ul>
-        </div>
+        </x-filament::section>
 
-        <div class="bg-muted-foreground/20 shadow rounded-lg p-6">
-            <h3 class="font-semibold mb-3">Challenges rejoints</h3>
+        <x-filament::section >
+            <x-slot name="heading">Challenges rejoints</x-slot>
             <ul class="space-y-2">
                 @forelse ($joined as $run)
                     <li class="flex justify-between items-center">
@@ -71,6 +71,6 @@
                     </li>
                 @endforelse
             </ul>
-        </div>
+        </x-filament::section>
     </div>
 </div>

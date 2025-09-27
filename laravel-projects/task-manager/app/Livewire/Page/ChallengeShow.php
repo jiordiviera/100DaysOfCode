@@ -15,11 +15,11 @@ use Filament\Schemas\Schema;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Mail;
-use Throwable;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Throwable;
 
 #[Title('Challenge')]
 #[Layout('components.layouts.app')]
@@ -48,7 +48,7 @@ class ChallengeShow extends Component implements HasForms
             return true;
         }
 
-        return $this->run->participantLinks->contains(fn($p) => $p->user_id === $user->id);
+        return $this->run->participantLinks->contains(fn ($p) => $p->user_id === $user->id);
     }
 
     public function sendInvite(): void
@@ -119,7 +119,7 @@ class ChallengeShow extends Component implements HasForms
             return;
         }
 
-        $token = (string)Str::ulid();
+        $token = (string) Str::ulid();
         $inv = ChallengeInvitation::create([
             'challenge_run_id' => $this->run->id,
             'inviter_id' => auth()->id(),
@@ -183,11 +183,11 @@ class ChallengeShow extends Component implements HasForms
 
     public function getProgressProperty(): array
     {
-        $target = max(1, (int)$this->run->target_days);
+        $target = max(1, (int) $this->run->target_days);
         $byUser = [];
         foreach ($this->run->participantLinks as $link) {
             $u = $link->user;
-            if (!$u) {
+            if (! $u) {
                 continue;
             }
             $done = DailyLog::where('challenge_run_id', $this->run->id)
@@ -209,7 +209,7 @@ class ChallengeShow extends Component implements HasForms
     {
         // Current streak counted from today's expected day number backwards
         $start = $this->run->start_date;
-        if (!$start) {
+        if (! $start) {
             return 0;
         }
         $todayDay = Carbon::now()->diffInDays(Carbon::parse($start)) + 1;
@@ -221,7 +221,7 @@ class ChallengeShow extends Component implements HasForms
         $doneSet = array_fill_keys($days, true);
         $streak = 0;
         for ($d = $todayDay; $d >= 1; $d--) {
-            if (!isset($doneSet[$d])) {
+            if (! isset($doneSet[$d])) {
                 break;
             }
             $streak++;
@@ -250,7 +250,7 @@ class ChallengeShow extends Component implements HasForms
         // Global progression
         $participantsCount = max(1, $this->run->participantLinks->count());
         $totalDone = DailyLog::where('challenge_run_id', $this->run->id)->count();
-        $globalPercent = round(min(100, ($totalDone / ($participantsCount * max(1, (int)$this->run->target_days))) * 100), 1);
+        $globalPercent = round(min(100, ($totalDone / ($participantsCount * max(1, (int) $this->run->target_days))) * 100), 1);
 
         // My done days set for calendar
         $myDoneDays = DailyLog::where('challenge_run_id', $this->run->id)
