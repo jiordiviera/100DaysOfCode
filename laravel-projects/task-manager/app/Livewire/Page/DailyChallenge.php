@@ -14,6 +14,7 @@ use Filament\Notifications\Notification;
 use Filament\Schemas\Schema;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -32,15 +33,26 @@ class DailyChallenge extends Component implements HasForms
 
     public $challengeRunId;
 
+    public array $history = [];
+
+    public array $summary = [];
+
+    public array $projectBreakdown = [];
+
+    public bool $canGoPrevious = false;
+
+    public bool $canGoNext = false;
+
+    public int $currentDayNumber = 1;
+
+    public bool $isEditing = false;
+
     public function mount(): void
     {
         $this->challengeDate = now()->format('Y-m-d');
-        $this->allProjects = Project::query()
-            ->where('user_id', auth()->id())
-            ->orWhereHas('members', fn ($q) => $q->where('users.id', auth()->id()))
-            ->get();
+        $this->allProjects = collect();
 
-        $this->ensureChallengeRun();
+        $run = $this->ensureChallengeRun();
         $this->form->fill([
             'description' => '',
             'projects_worked_on' => [],
@@ -48,32 +60,102 @@ class DailyChallenge extends Component implements HasForms
             'learnings' => null,
             'challenges_faced' => null,
         ]);
-        //        dd(1);
-        $this->loadTodayEntry();
-        //        dd(1);
+        $this->loadTodayEntry($run);
     }
 
-    protected function ensureChallengeRun()
+    protected function ensureChallengeRun(): ?ChallengeRun
     {
-        $userId = auth()->id();
-        $run = ChallengeRun::where('owner_id', $userId)
-            ->orderByDesc('id')
+        $user = auth()->user();
+
+        $run = ChallengeRun::query()
+            ->where('status', 'active')
+            ->where(function ($q) use ($user) {
+                $q->where('owner_id', $user->id)
+                    ->orWhereHas('participantLinks', fn ($qq) => $qq->where('user_id', $user->id));
+            })
+            ->latest('start_date')
             ->first();
-        //        dd($run);
 
         if (! $run) {
-            //            session()->flash('message', 'Créez votre challenge pour commencer votre journal quotidien.');
+            $this->challengeRunId = null;
+            $this->allProjects = collect();
+            $this->history = [];
+            $this->summary = [];
+            $this->projectBreakdown = [];
+
             Notification::make()
-                ->title('Créez votre challenge pour commencer votre journal quotidien.')
+                ->title('Aucun challenge actif')
+                ->body('Rejoignez ou créez un challenge pour compléter votre journal quotidien.')
                 ->warning()
                 ->send();
 
-            return;
+            return null;
         }
 
         $this->challengeRunId = $run->id;
 
-        return null;
+        $this->refreshProjects($run);
+        $this->refreshHistory($run);
+        $this->buildSummary($run);
+
+        return $run;
+    }
+
+    protected function refreshProjects(ChallengeRun $run): void
+    {
+        $this->allProjects = Project::query()
+            ->where('challenge_run_id', $run->id)
+            ->orderBy('name')
+            ->get();
+    }
+
+    public function goToDay(string $direction): void
+    {
+        $run = $this->challengeRunId ? ChallengeRun::find($this->challengeRunId) : null;
+
+        if (! $run) {
+            return;
+        }
+
+        $date = Carbon::parse($this->challengeDate);
+        $date = $direction === 'previous' ? $date->subDay() : $date->addDay();
+
+        $this->challengeDate = $this->clampDate($date, $run)->format('Y-m-d');
+        $this->loadTodayEntry($run);
+    }
+
+    public function setDate(string $date): void
+    {
+        $run = $this->challengeRunId ? ChallengeRun::find($this->challengeRunId) : null;
+
+        if (! $run) {
+            return;
+        }
+
+        $this->challengeDate = $this->clampDate(Carbon::parse($date), $run)->format('Y-m-d');
+        $this->loadTodayEntry($run);
+    }
+
+    public function startEditing(): void
+    {
+        if (! $this->todayEntry) {
+            return;
+        }
+
+        $this->isEditing = true;
+        $this->form->fill([
+            'description' => $this->todayEntry->notes ?? '',
+            'projects_worked_on' => collect($this->todayEntry->projects_worked_on ?? [])->map(fn ($id) => (string) $id)->all(),
+            'hours_coded' => $this->todayEntry->hours_coded ?? 1,
+            'learnings' => $this->todayEntry->learnings,
+            'challenges_faced' => $this->todayEntry->challenges_faced,
+        ]);
+    }
+
+    public function cancelEditing(): void
+    {
+        $this->isEditing = false;
+        $this->loadTodayEntry();
     }
 
     public function form(Schema $schema): Schema
@@ -109,20 +191,47 @@ class DailyChallenge extends Component implements HasForms
             ]);
     }
 
-    public function loadTodayEntry(): void
+    protected function clampDate(Carbon $date, ChallengeRun $run): Carbon
     {
-        $run = ChallengeRun::find($this->challengeRunId);
+        $start = Carbon::parse($run->start_date)->startOfDay();
+        $end = $start->copy()->addDays(max(0, (int) $run->target_days - 1));
+        $max = Carbon::today()->min($end);
+
+        if ($date->lessThan($start)) {
+            return $start;
+        }
+
+        if ($date->greaterThan($max)) {
+            return $max;
+        }
+
+        return $date;
+    }
+
+    public function loadTodayEntry(?ChallengeRun $run = null): void
+    {
+        $run ??= ($this->challengeRunId ? ChallengeRun::find($this->challengeRunId) : null);
         if (! $run) {
             return;
         }
-        $date = Carbon::parse($this->challengeDate);
-        $start = Carbon::parse($run->start_date);
-        $dayNumber = $start->diffInDays($date) + 1;
+
+        $date = $this->clampDate(Carbon::parse($this->challengeDate), $run);
+        $this->challengeDate = $date->format('Y-m-d');
+
+        $start = Carbon::parse($run->start_date)->startOfDay();
+        $end = $start->copy()->addDays(max(0, (int) $run->target_days - 1));
+        $allowedMax = Carbon::today()->min($end);
+
+        $this->currentDayNumber = max(1, $start->diffInDays($date) + 1);
+        $this->canGoPrevious = $date->greaterThan($start);
+        $this->canGoNext = $date->lessThan($allowedMax);
 
         $this->todayEntry = DailyLog::where('challenge_run_id', $run->id)
             ->where('user_id', auth()->id())
-            ->where('day_number', $dayNumber)
+            ->where('day_number', $this->currentDayNumber)
             ->first();
+
+        $this->isEditing = false;
 
         $entry = $this->todayEntry;
 
@@ -133,6 +242,9 @@ class DailyChallenge extends Component implements HasForms
             'learnings' => $entry?->learnings,
             'challenges_faced' => $entry?->challenges_faced,
         ]);
+
+        $this->refreshHistory($run);
+        $this->buildSummary($run);
     }
 
     public function saveEntry(): void
@@ -162,11 +274,134 @@ class DailyChallenge extends Component implements HasForms
         );
 
         session()->flash('message', 'Entrée quotidienne sauvegardée !');
-        $this->loadTodayEntry();
+        $this->isEditing = false;
+        $this->loadTodayEntry($run);
+    }
+
+    protected function refreshHistory(ChallengeRun $run): void
+    {
+        $history = DailyLog::query()
+            ->where('challenge_run_id', $run->id)
+            ->where('user_id', auth()->id())
+            ->orderByDesc('date')
+            ->orderByDesc('day_number')
+            ->limit(10)
+            ->get();
+
+        $this->history = $history->map(function (DailyLog $log) {
+            return [
+                'day_number' => $log->day_number,
+                'date' => $log->date ? Carbon::parse($log->date)->format('Y-m-d') : null,
+                'hours' => $log->hours_coded,
+                'projects' => $log->projects_worked_on ?? [],
+                'notes' => $log->notes,
+            ];
+        })->toArray();
+    }
+
+    protected function buildSummary(ChallengeRun $run): void
+    {
+        $logs = DailyLog::query()
+            ->where('challenge_run_id', $run->id)
+            ->where('user_id', auth()->id())
+            ->orderByDesc('date')
+            ->get();
+
+        $totalLogs = $logs->count();
+        $totalHours = (float) $logs->sum('hours_coded');
+        $target = max(1, (int) $run->target_days);
+        $lastLog = $logs->sortByDesc(fn ($log) => $log->date ?? $log->created_at)->first();
+
+        $weekStart = Carbon::today()->startOfWeek();
+        $hoursThisWeek = $logs->filter(function (DailyLog $log) use ($weekStart) {
+            if (! $log->date) {
+                return false;
+            }
+
+            return Carbon::parse($log->date)->greaterThanOrEqualTo($weekStart);
+        })->sum('hours_coded');
+
+        $this->summary = [
+            'streak' => $this->computeStreak($logs),
+            'totalLogs' => $totalLogs,
+            'totalHours' => round($totalHours, 2),
+            'completion' => (int) round(min(100, ($totalLogs / $target) * 100)),
+            'averageHours' => $totalLogs > 0 ? round($totalHours / $totalLogs, 2) : 0.0,
+            'hoursThisWeek' => round((float) $hoursThisWeek, 2),
+            'lastLogAt' => $lastLog?->date ? Carbon::parse($lastLog->date) : null,
+        ];
+
+        $projectCounts = [];
+        foreach ($logs as $log) {
+            foreach ($log->projects_worked_on ?? [] as $projectId) {
+                $projectCounts[$projectId] = ($projectCounts[$projectId] ?? 0) + 1;
+            }
+        }
+
+        $projects = $this->allProjects instanceof Collection ? $this->allProjects : collect($this->allProjects);
+
+        $this->projectBreakdown = collect($projectCounts)
+            ->map(function (int $count, string $projectId) use ($projects) {
+                $project = $projects->firstWhere('id', $projectId);
+
+                return [
+                    'id' => $projectId,
+                    'name' => $project?->name ?? 'Projet supprimé',
+                    'count' => $count,
+                ];
+            })
+            ->sortByDesc('count')
+            ->values()
+            ->take(5)
+            ->all();
+    }
+
+    protected function computeStreak(Collection $logs): int
+    {
+        $dates = $logs
+            ->filter(fn (DailyLog $log) => $log->date)
+            ->map(fn (DailyLog $log) => Carbon::parse($log->date)->startOfDay())
+            ->unique()
+            ->sortDesc()
+            ->values();
+
+        if ($dates->isEmpty()) {
+            return 0;
+        }
+
+        $today = Carbon::today();
+        $expected = $today->copy();
+        $streak = 0;
+
+        foreach ($dates as $date) {
+            if ($streak === 0) {
+                if ($date->isSameDay($expected) || $date->isSameDay($expected->copy()->subDay())) {
+                    $streak++;
+                    $expected = $date->copy()->subDay();
+                } else {
+                    break;
+                }
+
+                continue;
+            }
+
+            if ($date->isSameDay($expected)) {
+                $streak++;
+                $expected->subDay();
+            } else {
+                break;
+            }
+        }
+
+        return $streak;
     }
 
     public function render(): View
     {
-        return view('livewire.page.daily-challenge');
+        $run = $this->challengeRunId ? ChallengeRun::find($this->challengeRunId) : null;
+
+        return view('livewire.page.daily-challenge', [
+            'run' => $run,
+        ]);
     }
 }

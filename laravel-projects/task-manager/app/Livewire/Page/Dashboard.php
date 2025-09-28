@@ -5,7 +5,10 @@ namespace App\Livewire\Page;
 use App\Models\ChallengeRun;
 use App\Models\DailyLog;
 use App\Models\Task;
+use App\Support\BadgeEvaluator;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
@@ -52,6 +55,74 @@ class Dashboard extends Component
         ];
     }
 
+    protected function getDailyProgress(?ChallengeRun $run): array
+    {
+        $default = [
+            'runId' => null,
+            'hasEntryToday' => false,
+            'hoursToday' => null,
+            'streak' => 0,
+            'totalLogs' => 0,
+            'lastEntryAt' => null,
+            'completionPercent' => 0,
+        ];
+
+        if (! $run) {
+            return $default;
+        }
+
+        $userId = auth()->id();
+        $today = Carbon::today();
+
+        $todayLog = DailyLog::query()
+            ->where('challenge_run_id', $run->id)
+            ->where('user_id', $userId)
+            ->whereDate('date', $today)
+            ->first();
+
+        $logDates = DailyLog::query()
+            ->where('challenge_run_id', $run->id)
+            ->where('user_id', $userId)
+            ->orderByDesc('date')
+            ->pluck('date')
+            ->unique()
+            ->map(fn ($date) => Carbon::parse($date))
+            ->values();
+
+        $streak = 0;
+        $lastEntryAt = $logDates->first();
+
+        if ($lastEntryAt) {
+            $streak = 1;
+            $previousDate = $lastEntryAt->copy();
+
+            foreach ($logDates->skip(1) as $date) {
+                if ($previousDate->diffInDays($date) === 1) {
+                    $streak++;
+                    $previousDate = $date->copy();
+                } else {
+                    break;
+                }
+            }
+        }
+
+        $totalLogs = $logDates->count();
+        $percent = $totalLogs > 0 ? (int) round(min(100, ($totalLogs / max(1, (int) $run->target_days)) * 100)) : 0;
+
+        $badges = $this->determineBadges($run, $logDates, $streak, $totalLogs, (bool) $todayLog);
+
+        return [
+            'runId' => $run->id,
+            'hasEntryToday' => (bool) $todayLog,
+            'hoursToday' => $todayLog?->hours_coded,
+            'streak' => $streak,
+            'totalLogs' => $totalLogs,
+            'lastEntryAt' => $lastEntryAt,
+            'completionPercent' => $percent,
+            'badges' => $badges,
+        ];
+    }
+
     public function getRecentProjects($limit = 3)
     {
         $user = auth()->user();
@@ -87,12 +158,86 @@ class Dashboard extends Component
         $stats = $this->getUserStats();
         $recentProjects = $this->getRecentProjects();
         $recentTasks = $this->getRecentTasks();
-        //        dd($recentProjects);
+
+        $run = $stats['active']['run'] ?? null;
+        $dailyProgress = $this->getDailyProgress($run);
+        $earnedBadges = [];
+        $newBadges = [];
+
+        if ($run) {
+            $badgeEvaluator = new BadgeEvaluator();
+            $evaluation = $badgeEvaluator->evaluate(auth()->user()->loadMissing('badges'), $run, $dailyProgress);
+            $earnedBadges = $evaluation['earned'];
+            $newBadges = $evaluation['newly_awarded'];
+        }
+
+        $needsOnboarding = auth()->user()->needsOnboarding();
 
         return view('livewire.page.dashboard', [
             'stats' => $stats,
             'recentProjects' => $recentProjects,
             'recentTasks' => $recentTasks,
+            'dailyProgress' => $dailyProgress,
+            'earnedBadges' => $earnedBadges,
+            'newBadges' => $newBadges,
+            'needsOnboarding' => $needsOnboarding,
         ]);
+    }
+
+    protected function determineBadges(?ChallengeRun $run, Collection $logDates, int $streak, int $totalLogs, bool $hasEntryToday): array
+    {
+        $badges = [];
+        $target = $run ? max(1, (int) $run->target_days) : 100;
+        $today = Carbon::today();
+
+        if ($streak >= 3) {
+            $badges[] = [
+                'id' => 'streak_3',
+                'label' => 'Streak 3+',
+                'description' => 'Trois jours successifs de régularité.',
+                'color' => 'primary',
+            ];
+        }
+
+        if ($streak >= 7) {
+            $badges[] = [
+                'id' => 'streak_7',
+                'label' => 'Semaine en feu',
+                'description' => 'Sept jours consécutifs renseignés.',
+                'color' => 'success',
+            ];
+        }
+
+        if ($totalLogs >= ceil($target / 2)) {
+            $badges[] = [
+                'id' => 'halfway',
+                'label' => 'Mi-parcours',
+                'description' => 'Vous avez couvert au moins la moitié du défi.',
+                'color' => 'info',
+            ];
+        }
+
+        $lastSeven = collect(range(0, 6))->map(fn ($offset) => $today->copy()->subDays($offset)->toDateString());
+        $logsByDate = $logDates->map(fn (Carbon $date) => $date->toDateString())->flip();
+
+        if ($lastSeven->every(fn ($day) => $logsByDate->has($day))) {
+            $badges[] = [
+                'id' => 'perfect_week',
+                'label' => 'Semaine parfaite',
+                'description' => 'Toutes les entrées des 7 derniers jours sont complètes.',
+                'color' => 'warning',
+            ];
+        }
+
+        if ($hasEntryToday && !$badges) {
+            $badges[] = [
+                'id' => 'fresh-start',
+                'label' => 'Entrée du jour',
+                'description' => 'Belle constance aujourd’hui !',
+                'color' => 'gray',
+            ];
+        }
+
+        return $badges;
     }
 }

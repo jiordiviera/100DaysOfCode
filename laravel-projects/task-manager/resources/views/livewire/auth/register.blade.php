@@ -1,35 +1,23 @@
-<div
-  class="w-full max-w-md border border-border rounded-xl shadow-2xs bg-background"
->
+<div class="w-full max-w-md border border-border rounded-xl shadow-2xs bg-background">
     <div class="p-6 sm:p-8">
         <div class="text-center">
             <h1 class="block text-2xl font-bold">Créer un compte</h1>
             <p class="mt-2 text-sm text-muted-foreground">
                 Vous avez déjà un compte ?
-                <x-filament::link
-                    href="{{ route('login') }}"
-                    wire:navigate
-                >
+                <x-filament::link href="{{ route('login') }}" wire:navigate>
                     Se connecter
                 </x-filament::link>
             </p>
         </div>
 
         <div class="mt-6">
-            <x-filament::button
-                class="w-full justify-center"
-                color="gray"
-                outlined
-                disabled
-            >
-                @include("components.ui.icons.github")
+            <x-filament::button class="w-full justify-center" color="gray" outlined disabled>
+                @include('components.ui.icons.github')
                 <span>S'inscrire avec GitHub (bientôt)</span>
             </x-filament::button>
         </div>
 
-        <div
-            class="my-6 grid grid-cols-[1fr_auto_1fr] items-center gap-3 text-xs text-muted-foreground"
-        >
+        <div class="my-6 grid grid-cols-[1fr_auto_1fr] items-center gap-3 text-xs text-muted-foreground">
             <span class="h-px bg-border"></span>
             <span>ou</span>
             <span class="h-px bg-border"></span>
@@ -44,5 +32,9 @@
                 </x-filament::button>
             </form>
         </div>
+
+        <p class="mt-6 text-xs text-muted-foreground text-center">
+            En créant un compte, vous accéderez ensuite à un court onboarding pour configurer votre challenge.
+        </p>
     </div>
 </div>

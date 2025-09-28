@@ -6,13 +6,13 @@
         <x-slot name="description">
             @if ($activeRun)
                 Challenge actuel&nbsp;:
-                <x-filament::link href="{{ route('challenges.show', $activeRun->id) }}">
+                <x-filament::link wire:navigate href="{{ route('challenges.show', $activeRun->id) }}">
                     {{ $activeRun->title ?? '100 Days of Code' }}
                 </x-filament::link>
                 &mdash; démarré le {{ $activeRun->start_date->translatedFormat('d F Y') }}
             @else
                 Aucun challenge actif pour l'instant.
-                <x-filament::link href="{{ route('challenges.index') }}">
+                <x-filament::link wire:navigate href="{{ route('challenges.index') }}">
                     Créez ou rejoignez un challenge pour collaborer sur vos projets.
                 </x-filament::link>
             @endif
@@ -54,6 +54,33 @@
                                     <p class="text-xs text-destructive">{{ $message }}</p>
                                 @enderror
                             </div>
+
+                            @if ($templates->isNotEmpty())
+                                <div class="space-y-2">
+                                    <label class="text-sm font-medium" for="project_template">Modèle</label>
+                                    <select
+                                        id="project_template"
+                                        wire:model="projectTemplate"
+                                        class="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
+                                    >
+                                        <option value="">-- Sans modèle --</option>
+                                        @foreach ($templates as $template)
+                                            <option value="{{ $template->id }}">{{ $template->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('projectTemplate')
+                                        <p class="text-xs text-destructive">{{ $message }}</p>
+                                    @enderror
+                                    @if ($projectTemplate)
+                                        @php($selectedTemplate = $templates->firstWhere('id', $projectTemplate))
+                                        @if ($selectedTemplate)
+                                            <p class="text-xs text-muted-foreground">
+                                                {{ $selectedTemplate->description }} ({{ count($selectedTemplate->tasks ?? []) }} tâches précréées)
+                                            </p>
+                                        @endif
+                                    @endif
+                                </div>
+                            @endif
 
                             <x-filament::button type="submit">
                                 Créer le projet
@@ -99,6 +126,28 @@
                                     <p class="text-xs text-destructive">{{ $message }}</p>
                                 @enderror
                             </div>
+
+                            @if ($taskProjectId)
+                                @php($assignable = ($assignableByProject[$taskProjectId] ?? collect()))
+                                @if ($assignable->isNotEmpty())
+                                    <div class="space-y-2">
+                                        <label class="text-sm font-medium" for="task_assignee">Assigner à</label>
+                                        <select
+                                            id="task_assignee"
+                                            wire:model="taskAssigneeId"
+                                            class="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
+                                        >
+                                            <option value="">-- Assigner plus tard --</option>
+                                            @foreach ($assignable as $member)
+                                                <option value="{{ $member->id }}">{{ $member->name }}</option>
+                                            @endforeach
+                                        </select>
+                                        @error('taskAssigneeId')
+                                            <p class="text-xs text-destructive">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                @endif
+                            @endif
 
                             <x-filament::button type="submit">
                                 Créer la tâche
@@ -165,6 +214,27 @@
                                     Supprimer
                                 </x-filament::button>
                             </div>
+                            @if ($templates->isNotEmpty())
+                                <form wire:submit.prevent="applyTemplateToProject(@js($project->id))" class="mt-3 flex flex-wrap items-center gap-2 text-xs">
+                                    <label class="font-medium" for="project-template-{{ $project->id }}">Appliquer un modèle :</label>
+                                    <select
+                                        id="project-template-{{ $project->id }}"
+                                        wire:model="templateSelection.{{ $project->id }}"
+                                        class="rounded-lg border border-border bg-background px-2 py-1 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
+                                    >
+                                        <option value="">-- Sélectionner --</option>
+                                        @foreach ($templates as $template)
+                                            <option value="{{ $template->id }}">{{ $template->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    <x-filament::button size="xs" type="submit">
+                                        Ajouter les tâches
+                                    </x-filament::button>
+                                    @error('templateSelection.'.$project->id)
+                                        <p class="text-xs text-destructive">{{ $message }}</p>
+                                    @enderror
+                                </form>
+                            @endif
                         </div>
                     </x-slot>
 
@@ -219,69 +289,142 @@
                             <p class="text-xs font-semibold uppercase text-muted-foreground">Tâches</p>
                             <div class="space-y-3">
                                 @forelse ($project->tasks as $task)
-                                    <div class="flex flex-wrap items-center justify-between gap-3"
+                                    <div class="space-y-2 rounded-lg border border-border/70 bg-background p-3"
                                          wire:key="task-{{ $task->id }}">
-                                        <div class="space-y-1">
-                                            <p class="text-sm font-medium {{ $task->is_completed ? 'line-through text-muted-foreground' : '' }}">
-                                                {{ $task->title }}
-                                            </p>
-                                            <p class="text-xs text-muted-foreground">
-                                                par {{ $task->user->name ?? 'N/A' }}
-                                            </p>
-                                        </div>
+                                        <div class="flex flex-wrap items-start justify-between gap-3">
+                                            <div class="space-y-1">
+                                                <p class="text-sm font-medium {{ $task->is_completed ? 'line-through text-muted-foreground' : '' }}">
+                                                    {{ $task->title }}
+                                                </p>
+                                                <div class="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                                                    <span>Créée par {{ $task->user->name ?? 'N/A' }}</span>
+                                                    @if ($task->assignee)
+                                                        <span>•</span>
+                                                        <span>Assignée à {{ $task->assignee->name }}</span>
+                                                    @endif
+                                                </div>
+                                            </div>
 
-                                        <div class="flex flex-wrap items-center gap-2">
-                                            @if ($task->is_completed)
-                                                <x-filament::badge color="success">
-                                                    Terminée
-                                                </x-filament::badge>
-                                            @endif
 
-                                            <x-filament::button
+                                            <div class="flex flex-wrap items-center gap-2">
+                                                @if ($task->is_completed)
+                                                    <x-filament::badge color="success">
+                                                        Terminée
+                                                    </x-filament::badge>
+                                                @endif
+
+                                                <x-filament::button
                                                     type="button"
-                                                    wire:click="editTask({{ $task->id }})"
+                                                    wire:click="editTask('{{ $task->id }}')"
                                                     size="xs"
-                                            >
-                                                Éditer
-                                            </x-filament::button>
-                                            <x-filament::button
+                                                >
+                                                    Éditer
+                                                </x-filament::button>
+                                                <x-filament::button
                                                     type="button"
-                                                    wire:click="deleteTask({{ $task->id }})"
+                                                    wire:click="deleteTask('{{ $task->id }}')"
                                                     wire:confirm="Supprimer cette tâche ?"
                                                     color="danger"
                                                     size="xs"
-                                            >
-                                                Supprimer
-                                            </x-filament::button>
+                                                >
+                                                    Supprimer
+                                                </x-filament::button>
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    @if ($editTaskId === $task->id)
-                                        <form wire:submit.prevent="updateTask"
-                                              class="mt-2 flex flex-wrap items-center gap-2">
-                                            <input
+                                        @if (($assignableByProject[$project->id] ?? collect())->isNotEmpty())
+                                            <div class="flex flex-wrap items-center gap-2">
+                                                <label class="text-xs uppercase text-muted-foreground" for="assignment-{{ $task->id }}">
+                                                    Assigner
+                                                </label>
+                                                <select
+                                                    id="assignment-{{ $task->id }}"
+                                                    wire:model="assignmentBuffer.{{ $task->id }}"
+                                                    wire:change="updateTaskAssignment('{{ $task->id }}')"
+                                                    class="rounded-lg border border-border bg-background px-2 py-1 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
+                                                >
+                                                    <option value="">Non assignée</option>
+                                                    @foreach ($assignableByProject[$project->id] as $member)
+                                                        <option value="{{ $member->id }}">{{ $member->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                                @error('assignmentBuffer.'.$task->id)
+                                                    <p class="text-xs text-destructive">{{ $message }}</p>
+                                                @enderror
+                                            </div>
+                                        @endif
+
+                                        @if ($editTaskId === $task->id)
+                                            <form wire:submit.prevent="updateTask"
+                                                  class="mt-2 flex flex-wrap items-center gap-2">
+                                                <input
                                                     id="edit_task_{{ $task->id }}"
                                                     type="text"
                                                     wire:model="editTaskName"
                                                     class="w-full min-w-[12rem] flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
-                                            />
-                                            <x-filament::button size="sm" type="submit">
-                                                Valider
-                                            </x-filament::button>
-                                            <x-filament::button
+                                                />
+                                                <select
+                                                    wire:model="editTaskAssigneeId"
+                                                    class="w-full min-w-[10rem] rounded-lg border border-border bg-background px-2 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
+                                                >
+                                                    <option value="">Non assignée</option>
+                                                    @foreach ($assignableByProject[$project->id] ?? [] as $member)
+                                                        <option value="{{ $member->id }}">{{ $member->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                                <x-filament::button size="sm" type="submit">
+                                                    Valider
+                                                </x-filament::button>
+                                                <x-filament::button
                                                     size="sm"
                                                     type="button"
                                                     color="gray"
                                                     outlined
                                                     wire:click="$set('editTaskId', null)"
-                                            >
-                                                Annuler
-                                            </x-filament::button>
-                                            @error('editTaskName')
-                                            <p class="text-xs text-destructive">{{ $message }}</p>
-                                            @enderror
-                                        </form>
-                                    @endif
+                                                >
+                                                    Annuler
+                                                </x-filament::button>
+                                                @error('editTaskName')
+                                                    <p class="text-xs text-destructive">{{ $message }}</p>
+                                                @enderror
+                                                @error('editTaskAssigneeId')
+                                                    <p class="text-xs text-destructive">{{ $message }}</p>
+                                                @enderror
+                                            </form>
+                                        @endif
+
+                                        <div class="space-y-2 pt-2">
+                                            <p class="text-xs uppercase text-muted-foreground">Commentaires</p>
+                                            <div class="space-y-2">
+                                                @forelse ($task->comments as $comment)
+                                                    <div class="rounded-lg border border-border/60 bg-muted/40 px-3 py-2 text-sm">
+                                                        <p class="text-xs text-muted-foreground">
+                                                            {{ $comment->user->name ?? 'Utilisateur inconnu' }} · {{ $comment->created_at?->diffForHumans() }}
+                                                        </p>
+                                                        <p>{{ $comment->body }}</p>
+                                                    </div>
+                                                @empty
+                                                    <p class="text-xs text-muted-foreground">Pas encore de commentaire.</p>
+                                                @endforelse
+                                            </div>
+
+                                            <form wire:submit.prevent="addComment(@js($task->id))" class="flex flex-wrap items-center gap-2">
+                                                <x-filament::input
+                                                    id="comment_{{ $task->id }}"
+                                                    type="text"
+                                                    placeholder="Ajouter un commentaire"
+                                                    wire:model.defer="commentDrafts.{{ $task->id }}"
+                                                    class="w-full flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
+                                                />
+                                                <x-filament::button size="xs" type="submit">
+                                                    Envoyer
+                                                </x-filament::button>
+                                                @error('commentDrafts.'.$task->id)
+                                                    <p class="text-xs text-destructive">{{ $message }}</p>
+                                                @enderror
+                                            </form>
+                                        </div>
+                                    </div>
                                 @empty
                                     <p class="text-sm text-muted-foreground">Aucune tâche pour ce projet.</p>
                                 @endforelse

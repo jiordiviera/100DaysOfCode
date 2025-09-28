@@ -20,6 +20,7 @@ class ChallengeRun extends Model
         'target_days',
         'status',
         'is_public',
+        'public_join_code',
     ];
 
     protected $casts = [

@@ -1,133 +1,101 @@
 <header
   x-data="{ open: false }"
-  class="sticky top-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-background/95 bg-background/90 border-b border-border shadow-sm"
+  class="sticky top-0 z-40 border-b border-border/80 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/70"
 >
-  <div class="mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
-    <div class="flex items-center justify-between h-16">
-      <!-- Logo ou titre -->
-      <div class="flex items-center gap-2">
-        <a
-          href="{{ route("home") }}"
-          wire:navigate
-          class="text-xl font-bold text-foreground hover:text-primary-700 transition-colors"
-        >
-          {{ config("app.name") }}
-        </a>
-      </div>
-      @if (Route::has("login"))
-        <nav class="hidden md:flex items-center gap-8 text-sm font-medium">
-          <a wire:navigate href="{{ route("home") }}" wire:navigate>Accueil</a>
-
-          @auth
-            <a href="{{ url("/dashboard") }}" wire:navigate>Tableau de bord</a>
-            <a href="{{ route("challenges.index") }}" wire:navigate>
-              Challenges
-            </a>
-          @else
-            <a href="{{ route("login") }}" wire:navigate>Connexion</a>
-            @if (Route::has("register"))
-              <a href="{{ route("register") }}" wire:navigate>Inscription</a>
-            @endif
-          @endauth
-        </nav>
-        <!-- Bouton logout visible seulement si authentifié -->
-        @auth
-          <a
-            href="{{ route("logout") }}"
-            wire:navigate
-            class="py-2 px-4 rounded bg-destructive text-white hover:bg-destructive hidden md:flex"
-          >
-            Déconnexion
-          </a>
-        @endauth
-      @endif
-
-      <!-- Menu mobile -->
-      <div class="md:hidden flex items-center">
-        <!-- Bouton hamburger -->
-        <button @click="open = !open" aria-label="Ouvrir le menu">
-          <svg
-            class="h-6 w-6"
-            stroke="currentColor"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <path
-              :class="{'hidden': open, 'inline-flex': !open }"
-              class="inline-flex"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M4 6h16M4 12h16M4 18h16"
-            />
-            <path
-              :class="{'hidden': !open, 'inline-flex': open }"
-              class="hidden"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-        </button>
-      </div>
+  <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+    <!-- Brand -->
+    <div class="flex items-center gap-3">
+      <a href="{{ route('home') }}" wire:navigate class="flex items-center gap-2">
+        <span class="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-lg font-bold text-primary">
+          {{ Str::of(config('app.name'))->substr(0, 1) }}
+        </span>
+        <span class="text-xl font-semibold text-foreground">{{ config('app.name') }}</span>
+      </a>
     </div>
-    <!-- Menu mobile déroulant -->
-    <div
-      x-show="open"
-      x-transition
-      class="md:hidden bg-background border-t border-border shadow-lg rounded-b-lg"
-    >
-      <nav class="flex flex-col gap-2 p-4 text-sm font-medium">
-        <a
-          wire:navigate
-          href="{{ route("home") }}"
-          class="py-2 px-4 rounded hover:bg-background/80"
-        >
-          Accueil
-        </a>
 
+    @if (Route::has('login'))
+      <nav class="hidden items-center gap-6 text-sm font-medium md:flex">
+        <a wire:navigate href="{{ route('home') }}" class="text-muted-foreground hover:text-primary">Accueil</a>
         @auth
-          <a
-            href="{{ url("/dashboard") }}"
-            wire:navigate
-            class="py-2 px-4 rounded"
-          >
-            Tableau de bord
-          </a>
-          <a
-            href="{{ route("challenges.index") }}"
-            wire:navigate
-            class="py-2 px-4 rounded"
-          >
-            Challenges
-          </a>
-          <a
-            href="{{ route("logout") }}"
-            wire:navigate
-            class="py-2 px-4 rounded bg-destructive text-white hover:bg-destructive"
-          >
-            Déconnexion
-          </a>
+          <a wire:navigate href="{{ route('dashboard') }}" class="text-muted-foreground hover:text-primary">Dashboard</a>
+          <a wire:navigate href="{{ route('challenges.index') }}" class="text-muted-foreground hover:text-primary">Challenges</a>
+          <a wire:navigate href="{{ route('projects.index') }}" class="text-muted-foreground hover:text-primary">Projets</a>
+          @if (auth()->user()->needsOnboarding())
+            <a wire:navigate href="{{ route('onboarding') }}" class="text-muted-foreground hover:text-primary">Onboarding</a>
+          @endif
         @else
-          <a
-            href="{{ route("login") }}"
-            wire:navigate
-            class="py-2 px-4 rounded"
-          >
-            Connexion
-          </a>
-          @if (Route::has("register"))
-            <a
-              href="{{ route("register") }}"
-              wire:navigate
-              class="py-2 px-4 rounded"
-            >
-              Inscription
-            </a>
+          <a wire:navigate href="{{ route('login') }}" class="text-muted-foreground hover:text-primary">Connexion</a>
+          @if (Route::has('register'))
+            <a wire:navigate href="{{ route('register') }}" class="text-muted-foreground hover:text-primary">Inscription</a>
           @endif
         @endauth
       </nav>
-    </div>
+
+      <div class="hidden items-center gap-3 md:flex">
+        @auth
+          <div class="flex items-center gap-3">
+            <span class="text-sm text-muted-foreground">Salut, <span class="font-semibold text-foreground">{{ auth()->user()->name }}</span></span>
+            <a
+              href="{{ route('logout') }}"
+              wire:navigate
+              class="rounded-full bg-destructive px-4 py-2 text-xs font-semibold text-destructive-foreground transition hover:brightness-95"
+            >
+              Déconnexion
+            </a>
+          </div>
+        @else
+          <a
+            href="{{ route('register') }}"
+            wire:navigate
+            class="rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition hover:brightness-95"
+          >
+            Commencer
+          </a>
+        @endauth
+      </div>
+    @endif
+
+    <!-- Mobile menu toggle -->
+    <button class="md:hidden" @click="open = !open" aria-label="Menu">
+      <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+        <path
+          :class="{ 'hidden': open, 'inline-flex': !open }"
+          class="inline-flex"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M4 6h16M4 12h16M4 18h16"
+        />
+        <path
+          :class="{ 'hidden': !open, 'inline-flex': open }"
+          class="hidden"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M6 18L18 6M6 6l12 12"
+        />
+      </svg>
+    </button>
+  </div>
+
+  <!-- Mobile dropdown -->
+  <div x-show="open" x-transition class="md:hidden border-t border-border/70 bg-background">
+    <nav class="flex flex-col gap-1 p-4 text-sm font-medium">
+      <a wire:navigate href="{{ route('home') }}" class="rounded px-3 py-2 hover:bg-muted">Accueil</a>
+      @auth
+        <a wire:navigate href="{{ route('dashboard') }}" class="rounded px-3 py-2 hover:bg-muted">Dashboard</a>
+        <a wire:navigate href="{{ route('challenges.index') }}" class="rounded px-3 py-2 hover:bg-muted">Challenges</a>
+        <a wire:navigate href="{{ route('projects.index') }}" class="rounded px-3 py-2 hover:bg-muted">Projets</a>
+        @if (auth()->user()->needsOnboarding())
+          <a wire:navigate href="{{ route('onboarding') }}" class="rounded px-3 py-2 hover:bg-muted">Onboarding</a>
+        @endif
+        <a wire:navigate href="{{ route('logout') }}" class="mt-2 rounded px-3 py-2 bg-destructive text-destructive-foreground">Déconnexion</a>
+      @else
+        <a wire:navigate href="{{ route('login') }}" class="rounded px-3 py-2 hover:bg-muted">Connexion</a>
+        @if (Route::has('register'))
+          <a wire:navigate href="{{ route('register') }}" class="rounded px-3 py-2 hover:bg-muted">Inscription</a>
+        @endif
+      @endauth
+    </nav>
   </div>
 </header>

@@ -1,5 +1,6 @@
 <?php
 
+use App\Console\Commands\SendDailyLogReminders;
 use App\Providers\AppServiceProvider;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -12,6 +13,9 @@ return Application::configure(basePath: dirname(__DIR__))
         AppServiceProvider::class,
         LivewireServiceProvider::class,
         MailServiceProvider::class,
+    ])
+    ->withCommands([
+        SendDailyLogReminders::class,
     ])
     ->withRouting(
         web: __DIR__.'/../routes/web.php',

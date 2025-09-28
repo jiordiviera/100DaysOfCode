@@ -5,6 +5,9 @@ namespace App\Livewire\Page;
 use App\Models\ChallengeRun;
 use App\Models\Project;
 use App\Models\Task;
+use App\Models\TaskComment;
+use App\Models\User;
+use Illuminate\Support\Collection;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -17,6 +20,8 @@ class ProjectManager extends Component
 
     public $taskProjectId = '';
 
+    public ?string $taskAssigneeId = null;
+
     public $editProjectId = null;
 
     public $editProjectName = '';
@@ -25,11 +30,23 @@ class ProjectManager extends Component
 
     public $editTaskName = '';
 
+    public ?string $editTaskAssigneeId = null;
+
+    public array $commentDrafts = [];
+
+    public array $assignmentBuffer = [];
+
     public ?string $activeRunId = null;
 
     public ?string $feedbackMessage = null;
 
     public string $feedbackType = 'success';
+
+    public ?string $projectTemplate = null;
+
+    protected Collection $templates;
+
+    public array $templateSelection = [];
 
     protected function setFeedback(string $type, string $message): void
     {
@@ -49,13 +66,16 @@ class ProjectManager extends Component
 
         $this->validate([
             'projectName' => 'required|string|max:255',
+            'projectTemplate' => 'nullable|string',
         ]);
-        Project::create([
+        $project = Project::create([
             'name' => $this->projectName,
             'user_id' => auth()->id(),
             'challenge_run_id' => $this->activeRunId,
         ]);
         $this->projectName = '';
+        $this->applyTemplate($project, $this->projectTemplate);
+        $this->projectTemplate = null;
 
         $this->resetErrorBag();
         $this->setFeedback('success', 'Projet créé avec succès.');
@@ -86,13 +106,24 @@ class ProjectManager extends Component
             return;
         }
 
-        Task::create([
+        if ($this->taskAssigneeId && ! $this->isAssignableUser($project, $this->taskAssigneeId)) {
+            $this->addError('taskAssigneeId', 'Choisissez un membre du challenge pour l’assignation.');
+
+            return;
+        }
+
+        $task = Task::create([
             'title' => $this->taskName,
             'project_id' => $project->id,
             'user_id' => auth()->id(),
+            'assigned_user_id' => $this->taskAssigneeId,
         ]);
         $this->taskName = '';
         $this->taskProjectId = '';
+        $this->taskAssigneeId = null;
+
+        $this->assignmentBuffer[$task->id] = $task->assigned_user_id;
+        $this->commentDrafts[$task->id] = $this->commentDrafts[$task->id] ?? '';
 
         $this->resetErrorBag();
         $this->setFeedback('success', 'Tâche créée avec succès.');
@@ -127,23 +158,115 @@ class ProjectManager extends Component
         $this->editTaskId = $task->id;
         $this->editTaskName = $task->title;
         $this->taskProjectId = $task->project_id;
+        $this->editTaskAssigneeId = $task->assigned_user_id;
     }
 
     public function updateTask(): void
     {
+        $task = Task::findOrFail($this->editTaskId);
+
         $this->validate([
             'editTaskName' => 'required|string|max:255',
         ]);
-        $task = Task::findOrFail($this->editTaskId);
-        $task->update(['title' => $this->editTaskName]);
+
+        if ($this->editTaskAssigneeId && ! $this->isAssignableUser($task->project, $this->editTaskAssigneeId)) {
+            $this->addError('editTaskAssigneeId', 'Choisissez un membre du challenge pour l’assignation.');
+
+            return;
+        }
+
+        $task->update([
+            'title' => $this->editTaskName,
+            'assigned_user_id' => $this->editTaskAssigneeId,
+        ]);
         $this->editTaskId = null;
         $this->editTaskName = '';
         $this->taskProjectId = '';
+        $this->editTaskAssigneeId = null;
     }
 
     public function deleteTask($id): void
     {
         Task::findOrFail($id)->delete();
+
+        unset($this->commentDrafts[$id], $this->assignmentBuffer[$id]);
+    }
+
+    public function updateTaskAssignment(string $taskId): void
+    {
+        $task = Task::with('project')->findOrFail($taskId);
+
+        $userId = $this->assignmentBuffer[$taskId] ?? null;
+
+        if (! $userId) {
+            $task->update(['assigned_user_id' => null]);
+
+            return;
+        }
+
+        if (! $this->isAssignableUser($task->project, $userId)) {
+            $this->addError('assignmentBuffer.'.$taskId, 'Membre invalide.');
+
+            return;
+        }
+
+        $task->update(['assigned_user_id' => $userId]);
+    }
+
+    public function addComment(string $taskId): void
+    {
+//        dd($taskId);
+        $body = trim($this->commentDrafts[$taskId] ?? '');
+
+        if ($body === '') {
+            $this->addError('commentDrafts.'.$taskId, 'Le commentaire ne peut pas être vide.');
+
+            return;
+        }
+
+        $task = Task::with('project')->findOrFail($taskId);
+
+        if (! $this->isAssignableUser($task->project, auth()->id())) {
+            $this->addError('commentDrafts.'.$taskId, 'Vous ne pouvez commenter que les tâches de votre challenge.');
+
+            return;
+        }
+
+        TaskComment::create([
+            'task_id' => $task->id,
+            'user_id' => auth()->id(),
+            'body' => $body,
+        ]);
+
+        $this->commentDrafts[$taskId] = '';
+        $this->resetErrorBag('commentDrafts.'.$taskId);
+    }
+
+    protected function isAssignableUser(Project $project, ?string $userId): bool
+    {
+        if (! $userId) {
+            return false;
+        }
+
+        return $this->getAssignableUsersForProject($project)->contains(fn (User $user) => $user->id === $userId);
+    }
+
+    protected function getAssignableUsersForProject(Project $project)
+    {
+        $users = collect();
+
+        $users = $users->merge([$project->user]);
+        $users = $users->merge($project->members);
+
+        if ($project->challengeRun) {
+            $users = $users->merge([$project->challengeRun->owner]);
+            $users = $users->merge($project->challengeRun->participants);
+        }
+
+        return $users
+            ->filter()
+            ->unique('id')
+            ->values();
     }
 
     protected function resolveActiveRun(): void
@@ -165,7 +288,15 @@ class ProjectManager extends Component
         $user = auth()->user();
         $this->resolveActiveRun();
 
-        $projects = Project::with('tasks', 'user', 'members')
+        $projects = Project::with([
+            'tasks.assignee',
+            'tasks.user',
+            'tasks.comments.user',
+            'user',
+            'members',
+            'challengeRun.owner',
+            'challengeRun.participants',
+        ])
             ->where(function ($q) use ($user) {
                 $q->where('user_id', $user->id)
                     ->orWhereHas('members', function ($qq) use ($user) {
@@ -178,9 +309,75 @@ class ProjectManager extends Component
 
         $activeRun = $this->activeRunId ? ChallengeRun::find($this->activeRunId) : null;
 
+        $this->templates = $this->getTemplates();
+
+        foreach ($projects as $project) {
+            foreach ($project->tasks as $task) {
+                $this->assignmentBuffer[$task->id] ??= $task->assigned_user_id;
+                $this->commentDrafts[$task->id] ??= '';
+            }
+
+            $this->templateSelection[$project->id] ??= '';
+        }
+
         return view('livewire.page.project-manager', [
             'projects' => $projects,
             'activeRun' => $activeRun,
+            'assignableByProject' => $projects->mapWithKeys(fn ($project) => [
+                $project->id => $this->getAssignableUsersForProject($project),
+            ]),
+            'templates' => $this->templates,
         ]);
+    }
+
+    public function applyTemplateToProject(string $projectId): void
+    {
+        $templateId = $this->templateSelection[$projectId] ?? null;
+
+        if (! $templateId) {
+            $this->addError('templateSelection.'.$projectId, 'Sélectionnez un modèle.');
+
+            return;
+        }
+
+        $project = Project::findOrFail($projectId);
+
+        $this->applyTemplate($project, $templateId);
+        $this->templateSelection[$projectId] = '';
+
+        $this->setFeedback('success', 'Modèle appliqué au projet « '.$project->name.' ».');
+    }
+
+    protected function getTemplates(): Collection
+    {
+        return collect(config('project-templates.templates', []))->map(fn ($template) => (object) $template);
+    }
+
+    protected function applyTemplate(Project $project, ?string $templateId): void
+    {
+        if (! $templateId) {
+            return;
+        }
+
+        $template = $this->getTemplates()->firstWhere('id', $templateId);
+
+        if (! $template || empty($template->tasks)) {
+            return;
+        }
+
+        foreach ($template->tasks as $title) {
+            $title = trim((string) $title);
+
+            if ($title === '') {
+                continue;
+            }
+
+            Task::create([
+                'title' => $title,
+                'project_id' => $project->id,
+                'user_id' => auth()->id(),
+                'assigned_user_id' => null,
+            ]);
+        }
     }
 }

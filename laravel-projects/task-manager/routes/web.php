@@ -1,6 +1,8 @@
 <?php
 
 use App\Livewire\Page\ChallengeIndex;
+use App\Livewire\Page\ChallengeInsights;
+use App\Livewire\Page\Onboarding;
 use App\Livewire\Page\ChallengeShow;
 use App\Livewire\Page\DailyChallenge;
 use App\Livewire\Page\Dashboard;
@@ -15,6 +17,7 @@ Route::get('/', Welcome::class)->name('home');
 
 Route::middleware('auth')->group(function () {
     Route::get('dashboard', Dashboard::class)->name('dashboard');
+    Route::get('onboarding', Onboarding::class)->name('onboarding');
     Route::get('logout', function () {
         auth()->logout();
 
@@ -27,6 +30,7 @@ Route::middleware('auth')->group(function () {
     // Challenges 100DoC
     Route::get('challenges', ChallengeIndex::class)->name('challenges.index');
     Route::get('challenges/{run}', ChallengeShow::class)->name('challenges.show');
+    Route::get('challenges/{run}/insights', ChallengeInsights::class)->name('challenges.insights');
     Route::get('challenge/daily', DailyChallenge::class)->name('daily-challenge');
     Route::get('challenges/invite/{token}', function (string $token) {
         $inv = ChallengeInvitation::with('run')->where('token', $token)->firstOrFail();

@@ -15,7 +15,7 @@ use Livewire\Component;
 #[Title('Créer un compte')]
 #[Layout('components.layouts.auth', [
     'heroTitle' => 'Bienvenue à bord',
-    'heroSubtitle' => 'Créez votre compte pour organiser vos projets, prioriser vos tâches et voir vos avancées.',
+    'heroSubtitle' => 'Créez votre compte pour organiser vos projets, prioriser vos tâches et suivre vos avancées.',
 ])]
 class Register extends Component implements HasForms
 {
@@ -33,24 +33,20 @@ class Register extends Component implements HasForms
                     ->required()
                     ->minLength(3)
                     ->maxLength(255)
-                    ->autocomplete('name')
-                    ->helperText('Affiché dans vos projets et challenges.'),
+                    ->autocomplete('name'),
                 TextInput::make('email')
                     ->label('Email')
                     ->email()
                     ->required()
                     ->maxLength(255)
                     ->autocomplete('email')
-                    ->rule('unique:users,email')
-                    ->helperText('Votre adresse principale pour les notifications.'),
+                    ->rule('unique:users,email'),
                 TextInput::make('password')
                     ->label('Mot de passe')
                     ->password()
                     ->required()
                     ->minLength(6)
-                    ->maxLength(255)
-                    ->autocomplete('new-password')
-                    ->helperText('Au moins 6 caractères.'),
+                    ->autocomplete('new-password'),
                 TextInput::make('password_confirmation')
                     ->label('Confirmation du mot de passe')
                     ->password()
@@ -73,7 +69,7 @@ class Register extends Component implements HasForms
 
         auth()->login($user);
 
-        return redirect()->intended(route('dashboard'));
+        return redirect()->route('onboarding');
     }
 
     public function render(): View
@@ -81,3 +77,4 @@ class Register extends Component implements HasForms
         return view('livewire.auth.register');
     }
 }
+

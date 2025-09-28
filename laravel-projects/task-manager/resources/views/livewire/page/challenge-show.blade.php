@@ -16,20 +16,41 @@
     </div>
   </div>
   <div class="bg-muted-foreground/20 shadow rounded-lg p-6">
-    <div class="flex items-start justify-between gap-4">
-      <div>
-        <h1 class="text-2xl font-bold">
-          {{ $run->title ?? "100 Days of Code" }}
-        </h1>
-        <p class="text-sm text-muted-foreground mt-1">
-          Début: {{ $run->start_date->format("Y-m-d") }} • Objectif:
-          {{ $run->target_days }} jours
-        </p>
-        <p class="text-sm text-muted-foreground">
-          Owner: {{ $run->owner->name }}
-        </p>
-      </div>
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <h1 class="text-2xl font-bold">
+            {{ $run->title ?? "100 Days of Code" }}
+          </h1>
+          <p class="text-sm text-muted-foreground mt-1">
+            Début: {{ $run->start_date->format("Y-m-d") }} • Objectif:
+            {{ $run->target_days }} jours
+          </p>
+          <p class="text-sm text-muted-foreground">
+            Owner: {{ $run->owner->name }}
+          </p>
+          @if ($run->is_public && $run->public_join_code)
+            <div
+              class="mt-3 inline-flex items-center gap-2 rounded-lg border border-primary/40 bg-primary/10 px-3 py-1 text-xs"
+              x-data="{ copied: false, copy(text) { navigator.clipboard.writeText(text); this.copied = true; setTimeout(() => this.copied = false, 2000); } }"
+              x-cloak
+            >
+              <span class="font-semibold text-primary">Code public :</span>
+              <span class="font-mono text-primary">{{ $run->public_join_code }}</span>
+              <button
+                type="button"
+                class="rounded border border-primary px-2 py-1 text-primary hover:bg-primary hover:text-white"
+                @click="copy('{{ $run->public_join_code }}')"
+              >
+                <span x-show="! copied">Copier</span>
+                <span x-show="copied">Copié !</span>
+              </button>
+            </div>
+          @endif
+        </div>
       <div class="flex gap-2">
+        <x-filament::button tag="a" href="{{ route('challenges.insights', $run->id) }}" color="gray">
+          Insights
+        </x-filament::button>
         <x-filament::button tag="a" href="{{ route('daily-challenge') }}">
           Journal du jour
         </x-filament::button>

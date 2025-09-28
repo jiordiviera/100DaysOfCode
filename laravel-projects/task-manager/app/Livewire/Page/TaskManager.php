@@ -4,6 +4,8 @@ namespace App\Livewire\Page;
 
 use App\Models\Project;
 use App\Models\Task;
+use App\Models\TaskComment;
+use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
@@ -26,6 +28,16 @@ class TaskManager extends Component
     #[Validate('required|string|max:255')]
     public string $editTaskName = '';
 
+    public ?string $taskAssigneeId = null;
+
+    public ?string $editTaskAssigneeId = null;
+
+    public array $assignmentBuffer = [];
+
+    public array $commentDrafts = [];
+
+    public array $assignableUsers = [];
+
     public function mount(Project $project): void
     {
         $this->projectId = $project->id;
@@ -36,14 +48,24 @@ class TaskManager extends Component
     {
         $this->validateOnly('taskName');
 
-        Task::create([
+        if ($this->taskAssigneeId && ! $this->isAssignableUser($this->project, $this->taskAssigneeId)) {
+            $this->addError('taskAssigneeId', 'Choisissez un membre du challenge.');
+
+            return;
+        }
+
+        $task = Task::create([
             'title' => $this->taskName,
             'project_id' => $this->project->id,
             'user_id' => auth()->id(),
+            'assigned_user_id' => $this->taskAssigneeId,
         ]);
 
         $this->reset('taskName');
+        $this->taskAssigneeId = null;
         $this->resetErrorBag('taskName');
+        $this->assignmentBuffer[$task->id] = $task->assigned_user_id;
+        $this->commentDrafts[$task->id] = '';
         $this->refreshProject();
     }
 
@@ -53,6 +75,7 @@ class TaskManager extends Component
 
         $this->editTaskId = $task->id;
         $this->editTaskName = $task->title;
+        $this->editTaskAssigneeId = $task->assigned_user_id;
     }
 
     public function updateTask(): void
@@ -60,9 +83,19 @@ class TaskManager extends Component
         $this->validateOnly('editTaskName');
 
         $task = Task::findOrFail($this->editTaskId);
-        $task->update(['title' => $this->editTaskName]);
+        if ($this->editTaskAssigneeId && ! $this->isAssignableUser($task->project, $this->editTaskAssigneeId)) {
+            $this->addError('editTaskAssigneeId', 'Choisissez un membre du challenge.');
+
+            return;
+        }
+
+        $task->update([
+            'title' => $this->editTaskName,
+            'assigned_user_id' => $this->editTaskAssigneeId,
+        ]);
 
         $this->reset('editTaskId', 'editTaskName');
+        $this->editTaskAssigneeId = null;
         $this->resetErrorBag('editTaskName');
         $this->refreshProject();
     }
@@ -71,27 +104,115 @@ class TaskManager extends Component
     {
         Task::findOrFail($id)->delete();
 
+        unset($this->assignmentBuffer[$id], $this->commentDrafts[$id]);
+
         $this->refreshProject();
     }
 
     public function completeTask(string $id): void
     {
         $task = Task::findOrFail($id);
-        dd($task);
         $task->update(['is_completed' => true]);
 
         $this->refreshProject();
     }
 
+    public function updateTaskAssignment(string $taskId): void
+    {
+        $task = Task::with('project')->findOrFail($taskId);
+        $selected = $this->assignmentBuffer[$taskId] ?? null;
+
+        if (! $selected) {
+            $task->update(['assigned_user_id' => null]);
+
+            return;
+        }
+
+        if (! $this->isAssignableUser($task->project, $selected)) {
+            $this->addError('assignmentBuffer.'.$taskId, 'Membre invalide.');
+
+            return;
+        }
+
+        $task->update(['assigned_user_id' => $selected]);
+    }
+
+    public function addComment(string $taskId): void
+    {
+        $body = trim($this->commentDrafts[$taskId] ?? '');
+
+        if ($body === '') {
+            $this->addError('commentDrafts.'.$taskId, 'Le commentaire ne peut pas être vide.');
+
+            return;
+        }
+
+        $task = Task::with('project')->findOrFail($taskId);
+
+        if (! $this->isAssignableUser($task->project, auth()->id())) {
+            $this->addError('commentDrafts.'.$taskId, 'Vous ne pouvez commenter que les tâches du challenge.');
+
+            return;
+        }
+
+        TaskComment::create([
+            'task_id' => $task->id,
+            'user_id' => auth()->id(),
+            'body' => $body,
+        ]);
+
+        $this->commentDrafts[$taskId] = '';
+        $this->resetErrorBag('commentDrafts.'.$taskId);
+        $this->refreshProject();
+    }
+
+    protected function isAssignableUser(Project $project, ?string $userId): bool
+    {
+        if (! $userId) {
+            return false;
+        }
+
+        return collect($this->assignableUsers)
+            ->contains(fn (User $user) => $user->id === $userId);
+    }
+
+    protected function buildAssignableUsers(): array
+    {
+        $users = collect([$this->project->user])
+            ->merge($this->project->members);
+
+        if ($this->project->challengeRun) {
+            $users = $users->merge([$this->project->challengeRun->owner])
+                ->merge($this->project->challengeRun->participants);
+        }
+
+        return $users->filter()->unique('id')->values()->all();
+    }
+
     protected function refreshProject(): void
     {
-        $this->project = Project::with('tasks.user')->findOrFail($this->projectId);
+        $this->project = Project::with([
+            'tasks.user',
+            'tasks.assignee',
+            'tasks.comments.user',
+            'members',
+            'challengeRun.owner',
+            'challengeRun.participants',
+        ])->findOrFail($this->projectId);
+
+        $this->assignableUsers = $this->buildAssignableUsers();
+
+        foreach ($this->project->tasks as $task) {
+            $this->assignmentBuffer[$task->id] ??= $task->assigned_user_id;
+            $this->commentDrafts[$task->id] ??= '';
+        }
     }
 
     public function render(): View
     {
         return view('livewire.page.task-manager', [
             'project' => $this->project,
+            'assignableUsers' => $this->assignableUsers,
         ]);
     }
 }
