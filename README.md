@@ -56,4 +56,3 @@ I’ll be sharing daily updates on LinkedIn as well.
 - Log progress in this repository.
 - Share updates publicly with the hashtag **#100DaysOfCode**.
 - Focus mainly on **Laravel** and **Next.js** projects.
-

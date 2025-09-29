@@ -6,9 +6,6 @@
     <!-- Brand -->
     <div class="flex items-center gap-3">
       <a href="{{ route('home') }}" wire:navigate class="flex items-center gap-2">
-        <span class="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-lg font-bold text-primary">
-          {{ Str::of(config('app.name'))->substr(0, 1) }}
-        </span>
         <span class="text-xl font-semibold text-foreground">{{ config('app.name') }}</span>
       </a>
     </div>

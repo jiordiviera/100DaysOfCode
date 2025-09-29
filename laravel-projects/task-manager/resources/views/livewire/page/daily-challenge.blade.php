@@ -42,6 +42,11 @@
           </div>
 
           <div class="mt-6">
+            @if ($showReminder)
+              <div class="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                Pas encore de log pour aujourd’hui. Renseignez votre journée pour conserver votre streak !
+              </div>
+            @endif
             @if (session()->has('message'))
               <div class="mb-4 rounded-md bg-green-100 px-3 py-2 text-sm text-green-800 dark:bg-green-900/60 dark:text-green-200">
                 {{ session('message') }}

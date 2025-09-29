@@ -47,6 +47,10 @@ class DailyChallenge extends Component implements HasForms
 
     public bool $isEditing = false;
 
+    public bool $showReminder = false;
+
+    public ?array $previousEntry = null;
+
     public function mount(): void
     {
         $this->challengeDate = now()->format('Y-m-d');
@@ -231,6 +235,26 @@ class DailyChallenge extends Component implements HasForms
             ->where('day_number', $this->currentDayNumber)
             ->first();
 
+        $this->showReminder = ! $this->todayEntry && $date->isToday();
+
+        $this->previousEntry = null;
+        if ($this->currentDayNumber > 1) {
+            $previous = DailyLog::where('challenge_run_id', $run->id)
+                ->where('user_id', auth()->id())
+                ->where('day_number', $this->currentDayNumber - 1)
+                ->first();
+
+            if ($previous) {
+                $this->previousEntry = [
+                    'day_number' => $previous->day_number,
+                    'date' => $previous->date ? Carbon::parse($previous->date) : null,
+                    'hours' => $previous->hours_coded,
+                    'notes' => $previous->notes,
+                    'projects' => $previous->projects_worked_on ?? [],
+                ];
+            }
+        }
+
         $this->isEditing = false;
 
         $entry = $this->todayEntry;
@@ -272,6 +296,21 @@ class DailyChallenge extends Component implements HasForms
                 'completed' => true,
             ]
         );
+
+        $hours = isset($data['hours_coded']) ? (float) $data['hours_coded'] : 0.0;
+        $yesterday = DailyLog::where('challenge_run_id', $run->id)
+            ->where('user_id', auth()->id())
+            ->where('day_number', max(1, $dayNumber - 1))
+            ->first();
+
+        $delta = $yesterday ? $hours - (float) $yesterday->hours_coded : null;
+        $deltaText = $delta === null ? '' : ($delta >= 0 ? '+' : '−').number_format(abs($delta), 2).' h vs veille';
+
+        Notification::make()
+            ->title('Journal sauvegardé')
+            ->body(trim('Vous avez enregistré '.number_format($hours, 2).' h aujourd’hui. '.$deltaText))
+            ->success()
+            ->send();
 
         session()->flash('message', 'Entrée quotidienne sauvegardée !');
         $this->isEditing = false;
