@@ -26,7 +26,7 @@
   @if ($onboardingMessages)
     <x-filament::card class="border border-primary-200 bg-primary-50 text-primary-900">
       <ul class="space-y-1 text-sm">
-        @foreach ($messages as $message)
+        @foreach ($onboardingMessages as $message)
           <li>{{ $message }}</li>
         @endforeach
       </ul>
