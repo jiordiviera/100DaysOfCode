@@ -1,0 +1,49 @@
+name: Setup Laravel
+description: Install PHP/Bun dependencies for a Laravel project
+
+inputs:
+  project-path:
+    description: Relative path to the Laravel project directory
+    required: true
+  php-version:
+    description: PHP version to install
+    required: false
+    default: '8.3'
+  bun-version:
+    description: Bun version to install
+    required: false
+    default: 'latest'
+
+runs:
+  using: composite
+  steps:
+    - name: Set up PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ inputs.php-version }}
+        coverage: none
+        extensions: mbstring, bcmath, intl, sqlite3, pcntl, exif
+        tools: composer
+
+    - name: Cache Composer dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.composer/cache/files
+        key: ${{ runner.os }}-composer-${{ hashFiles(format('{0}/composer.lock', inputs.project-path)) }}
+        restore-keys: |
+          ${{ runner.os }}-composer-
+
+    - name: Install Composer dependencies
+      run: composer install --no-ansi --no-interaction --no-progress --prefer-dist
+      shell: bash
+      working-directory: ${{ inputs.project-path }}
+
+    - name: Set up Bun
+      uses: oven-sh/setup-bun@v1
+      with:
+        bun-version: ${{ inputs.bun-version }}
+
+    - name: Install frontend dependencies
+      run: bun install
+      shell: bash
+      working-directory: ${{ inputs.project-path }}
