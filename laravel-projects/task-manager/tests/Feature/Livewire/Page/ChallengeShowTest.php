@@ -42,7 +42,7 @@ it('envoie un e-mail lors de la création dune invitation', function () {
 
     expect(ChallengeInvitation::where('email', $email)->exists())->toBeTrue();
 
-    Mail::assertSent(ChallengeInvitationMail::class, function (ChallengeInvitationMail $mail) use ($email, $run) {
+    Mail::assertQueued(ChallengeInvitationMail::class, function (ChallengeInvitationMail $mail) use ($email, $run) {
         return $mail->hasTo($email)
             && $mail->invitation->challenge_run_id === $run->id;
     });
