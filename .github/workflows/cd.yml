@@ -1,0 +1,99 @@
+name: CD
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/**'
+      - 'laravel-projects/**'
+  workflow_dispatch:
+    inputs:
+      project:
+        description: Optional project to deploy (e.g. task-manager)
+        required: false
+
+jobs:
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    outputs:
+      task_manager: ${{ steps.filter.outputs.task_manager }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Filter paths
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            task_manager:
+              - 'laravel-projects/task-manager/**'
+              - '.github/workflows/cd.yml'
+              - '.github/actions/**'
+
+  deploy-task-manager:
+    name: Deploy task-manager
+    needs: changes
+    runs-on: ubuntu-latest
+    if: needs.changes.outputs.task_manager == 'true' || github.event_name == 'workflow_dispatch' && (!github.event.inputs.project || github.event.inputs.project == 'task-manager')
+    env:
+      PROJECT_PATH: laravel-projects/task-manager
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare dependencies
+        uses: ./.github/actions/setup-laravel
+        with:
+          project-path: ${{ env.PROJECT_PATH }}
+          php-version: '8.3'
+
+      - name: Build frontend assets
+        run: bun run build
+        working-directory: ${{ env.PROJECT_PATH }}
+
+      - name: Optimise framework caches
+        run: |
+          composer install --no-dev --no-ansi --no-interaction --no-progress --prefer-dist
+          php artisan config:cache
+          php artisan route:cache
+          php artisan view:cache
+        working-directory: ${{ env.PROJECT_PATH }}
+
+      - name: Sync files to Hetzner VPS
+        uses: easingthemes/ssh-deploy@v4
+        with:
+          SSH_PRIVATE_KEY: ${{ secrets.TASK_MANAGER_SSH_KEY }}
+          REMOTE_HOST: ${{ secrets.TASK_MANAGER_REMOTE_HOST }}
+          REMOTE_USER: ${{ secrets.TASK_MANAGER_REMOTE_USER }}
+          ARGS: "-avz --delete --exclude=storage --exclude=.env --exclude=node_modules --exclude=vendor --exclude=.git"
+          SOURCE: "${{ env.PROJECT_PATH }}/"
+          TARGET: "${{ secrets.TASK_MANAGER_REMOTE_PATH }}"
+
+      - name: Finalise deployment
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.TASK_MANAGER_REMOTE_HOST }}
+          username: ${{ secrets.TASK_MANAGER_REMOTE_USER }}
+          key: ${{ secrets.TASK_MANAGER_SSH_KEY }}
+          script: |
+            set -euo pipefail
+            cd "${{ secrets.TASK_MANAGER_REMOTE_PATH }}"
+            if [ ! -f .env ]; then
+              echo "[warn] .env missing in $PWD. Create it before deploying." >&2
+            fi
+            mkdir -p storage bootstrap/cache
+            composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+            php artisan migrate --force
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+            if command -v supervisorctl >/dev/null 2>&1; then
+              supervisorctl reread || true
+              supervisorctl update || true
+            fi
+            if command -v systemctl >/dev/null 2>&1; then
+              sudo systemctl reload php8.3-fpm || true
+            fi
