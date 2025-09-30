@@ -78,5 +78,5 @@ jobs:
         working-directory: laravel-projects/task-manager
 
       - name: Run tests
-        run: php artisan test --no-interaction
+        run: php artisan test
         working-directory: laravel-projects/task-manager
