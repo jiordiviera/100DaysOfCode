@@ -91,9 +91,20 @@ jobs:
             php artisan route:cache
             php artisan view:cache
             if command -v supervisorctl >/dev/null 2>&1; then
-              supervisorctl reread || true
-              supervisorctl update || true
+              if supervisorctl status >/dev/null 2>&1; then
+                supervisorctl reread || true
+                supervisorctl update || true
+              elif sudo -n supervisorctl status >/dev/null 2>&1; then
+                sudo -n supervisorctl reread || true
+                sudo -n supervisorctl update || true
+              else
+                echo "[info] supervisorctl requires elevated permissions; skipping reload" >&2
+              fi
             fi
             if command -v systemctl >/dev/null 2>&1; then
-              sudo systemctl reload php8.3-fpm || true
+              if sudo -n systemctl status php8.3-fpm >/dev/null 2>&1; then
+                sudo -n systemctl reload php8.3-fpm || true
+              else
+                echo "[info] systemctl reload skipped (passwordless sudo unavailable)." >&2
+              fi
             fi
