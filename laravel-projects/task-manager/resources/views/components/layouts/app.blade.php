@@ -34,7 +34,7 @@
       @filamentStyles
   </head>
   <body
-    class="font-sans antialiased min-h-screen !overflow-x-hidden flex flex-col bg-background text-foreground"
+    class="font-sans antialiased min-h-screen overflow-x-hidden flex flex-col bg-background text-foreground"
   >
     <livewire:partials.header />
     @livewire('notifications')

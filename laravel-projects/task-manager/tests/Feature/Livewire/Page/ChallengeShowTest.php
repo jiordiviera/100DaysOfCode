@@ -25,12 +25,6 @@ it('envoie un e-mail lors de la création dune invitation', function () {
         'target_days' => 100,
     ]);
 
-    ChallengeParticipant::create([
-        'challenge_run_id' => $run->id,
-        'user_id' => $owner->id,
-        'joined_at' => Carbon::now(),
-    ]);
-
     $this->actingAs($owner);
 
     $email = 'invited@example.test';

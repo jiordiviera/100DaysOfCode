@@ -28,6 +28,20 @@ class ChallengeRun extends Model
         'is_public' => 'boolean',
     ];
 
+    protected static function booted(): void
+    {
+        static::created(function (ChallengeRun $run): void {
+            if (! $run->owner_id) {
+                return;
+            }
+
+            $run->participantLinks()->firstOrCreate(
+                ['user_id' => $run->owner_id],
+                ['joined_at' => now()]
+            );
+        });
+    }
+
     public function owner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'owner_id');

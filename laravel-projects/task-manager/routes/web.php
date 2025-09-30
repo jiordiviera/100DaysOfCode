@@ -50,9 +50,21 @@ Route::middleware('auth')->group(function () {
                 'joined_at' => now(),
             ]);
         }
+
         if (! $inv->accepted_at) {
-            $inv->accepted_at = now();
-            $inv->save();
+            $inv->forceFill(['accepted_at' => now()])->save();
+        }
+
+        if (! auth()->user()->profile()->exists()) {
+            auth()->user()->profile()->create([
+                'join_reason' => 'invited',
+                'focus_area' => null,
+                'preferences' => [
+                    'origin' => 'invitation-link',
+                    'invitation_id' => $inv->id,
+                    'challenge_run_id' => $run->id,
+                ],
+            ]);
         }
 
         return Redirect::route('challenges.show', ['run' => $run->id])

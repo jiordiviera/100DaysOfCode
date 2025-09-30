@@ -130,9 +130,9 @@
       @if ($lastInviteLink)
         <div class="text-sm">
           Lien d'invitation (également envoyé par e-mail):
-          <a class="text-primary underline" href="{{ $lastInviteLink }}">
+          <x-filament::link class="text-primary underline truncate max-w-[200px]" href="{{ $lastInviteLink }}">
             {{ $lastInviteLink }}
-          </a>
+          </x-filament::link>
         </div>
       @endif
 
@@ -145,13 +145,15 @@
               <span class="flex items-center gap-3">
                 <x-filament::button
                   wire:click="copyLink('{{ route('challenges.accept', $inv->token) }}')"
+                  size="sm"
                 >
-                  Copier le lien
+                  Copier
                 </x-filament::button>
                 <x-filament::button
                   color="danger"
                   wire:confirm="Voulez-vous vraiment révoquer cette invitation ?"
                   wire:click="revokeInvite('{{ $inv->getKey() }}')"
+                  size="sm"
                 >
                   Révoquer
                 </x-filament::button>

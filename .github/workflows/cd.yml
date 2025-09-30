@@ -110,7 +110,6 @@ jobs:
             if [ ! -f .env ]; then
               echo "[warn] .env missing in $PWD. Create it before deploying." >&2
             fi
-            mkdir -p storage bootstrap/cache
             composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
             php artisan migrate --force
             php artisan config:cache

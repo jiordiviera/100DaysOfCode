@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Page;
 
+use App\Models\ChallengeInvitation;
 use App\Models\ChallengeRun;
 use App\Support\Onboarding\OnboardUserAction;
 use Filament\Forms\Components\Radio;
@@ -15,6 +16,7 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -27,17 +29,28 @@ class Onboarding extends Component implements HasForms
 
     public ?array $onboardingForm = [];
 
+    public Collection $pendingInvitations;
+
     public $publicChallenges;
 
     public array $publicChallengeOptions = [];
 
     public function mount(): void
     {
+        $this->pendingInvitations = collect();
+
         if (! auth()->user()->needsOnboarding()) {
             $this->redirectRoute('dashboard');
 
             return;
         }
+
+        $this->pendingInvitations = ChallengeInvitation::query()
+            ->where('email', auth()->user()->email)
+            ->whereNull('accepted_at')
+            ->with(['run.owner:id,name'])
+            ->latest()
+            ->get();
 
         $this->publicChallenges = ChallengeRun::query()
             ->where('is_public', true)
@@ -141,6 +154,43 @@ class Onboarding extends Component implements HasForms
         session()->flash('onboarding_new_badges', $summary['new_badges'] ?? []);
 
         return redirect()->route('dashboard');
+    }
+
+    public function acceptInvitation(string $invitationId): void
+    {
+        $invitation = ChallengeInvitation::query()
+            ->whereKey($invitationId)
+            ->whereNull('accepted_at')
+            ->where('email', auth()->user()->email)
+            ->with('run')
+            ->firstOrFail();
+
+        $run = $invitation->run;
+
+        $run->participantLinks()->firstOrCreate(
+            ['user_id' => auth()->id()],
+            ['joined_at' => now()]
+        );
+
+        if (! $invitation->accepted_at) {
+            $invitation->forceFill(['accepted_at' => now()])->save();
+        }
+
+        if (! auth()->user()->profile()->exists()) {
+            auth()->user()->profile()->create([
+                'join_reason' => 'invited',
+                'focus_area' => null,
+                'preferences' => [
+                    'origin' => 'invitation',
+                    'invitation_id' => $invitation->id,
+                    'challenge_run_id' => $run->id,
+                ],
+            ]);
+        }
+
+        session()->flash('onboarding_messages', ["Vous avez rejoint le challenge « {$run->title} »." ]);
+
+        $this->redirectRoute('dashboard');
     }
 
     public function render(): View
