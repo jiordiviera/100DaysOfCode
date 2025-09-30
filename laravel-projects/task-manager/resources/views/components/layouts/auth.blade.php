@@ -22,7 +22,7 @@
     @filamentStyles
 </head>
 <body
-    class="font-sans antialiased min-h-screen !overflow-x-hidden bg-background text-foreground"
+    class="font-sans antialiased min-h-screen !overflow-x-hidden bg-background text-foreground dark"
 >
 @livewire('notifications')
 <main class="grid lg:grid-cols-2 w-full min-h-screen">
