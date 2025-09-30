@@ -73,6 +73,10 @@ jobs:
         run: php artisan key:generate --force
         working-directory: laravel-projects/task-manager
 
+      - name: Build assets
+        run: bun run build
+        working-directory: laravel-projects/task-manager
+
       - name: Run migrations
         run: php artisan migrate --no-interaction --database=sqlite
         working-directory: laravel-projects/task-manager
