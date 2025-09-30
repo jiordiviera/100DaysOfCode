@@ -132,7 +132,7 @@ class ChallengeShow extends Component implements HasForms
         $this->form->fill();
 
         try {
-            Mail::to($email)->send(new ChallengeInvitationMail($inv));
+            Mail::to($email)->queue(new ChallengeInvitationMail($inv));
         } catch (Throwable $exception) {
             report($exception);
 
