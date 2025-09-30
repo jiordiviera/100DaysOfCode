@@ -1,5 +1,16 @@
 <div class="w-full max-w-md border border-border rounded-xl shadow-2xs bg-background">
     <div class="p-6 sm:p-8">
+        <div class="mb-6">
+            <x-filament::link
+                href="{{ route('home') }}"
+                wire:navigate
+                class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary"
+            >
+                <span aria-hidden="true">&larr;</span>
+                <span>Retour à l'accueil</span>
+            </x-filament::link>
+        </div>
+
         <div class="text-center">
             <h1 class="block text-2xl font-bold">Créer un compte</h1>
             <p class="mt-2 text-sm text-muted-foreground">
