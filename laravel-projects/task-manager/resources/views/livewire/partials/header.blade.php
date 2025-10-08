@@ -44,7 +44,7 @@
           <a
             href="{{ route('register') }}"
             wire:navigate
-            class="rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition hover:brightness-95"
+            class="rounded-full bg-primary px-4 py-2 text-xs font-semibold text-foreground transition hover:brightness-95"
           >
             Commencer
           </a>
